@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaimCenter™</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+  --nav-bg: #1c2b3a;
+  --sidebar-bg: #1c2b3a;
+  --sidebar-active: #2a4060;
+  --sidebar-hover: #243348;
+  --teal: #1a8a9c;
+  --teal-dark: #0d7a8a;
+  --green-btn: #1ea97a;
+  --content-bg: #f0f2f5;
+  --border: #c8cfd8;
+  --text-muted: #6b7280;
+  --link-color: #1a7fbf;
+  --error-red: #cc2222;
+  --req-orange: #e07b00;
+  --input-border: #8899aa;
+  --selected-bg: #e8f4f8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1a2332;background:var(--content-bg);overflow-x:hidden}
+/* TOP NAV */
+.top-nav{background:var(--nav-bg);height:48px;display:flex;align-items:center;padding:0 12px;gap:2px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.logo-box{display:flex;align-items:center;gap:10px;color:white;font-size:16px;font-weight:700;padding-right:16px;border-right:1px solid rgba(255,255,255,0.2);margin-right:8px;white-space:nowrap}
+.logo-icon{width:28px;height:22px;background:#1a8a9c;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white}
+.nav-btn{color:rgba(255,255,255,0.88);padding:7px 10px;border-radius:3px;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;background:none;font-size:13px;white-space:nowrap;position:relative}
+.nav-btn:hover{background:rgba(255,255,255,0.1)}
+.nav-btn.active-nav{background:rgba(255,255,255,0.12)}
+.caret{font-size:10px;opacity:0.65}
+.nav-spacer{flex:1}
+.fnol-btn{background:#1ea97a;color:white;border:none;padding:7px 14px;border-radius:3px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.fnol-btn:hover{background:#179466}
+.nav-icon{color:rgba(255,255,255,0.75);padding:7px 9px;cursor:pointer;background:none;border:none;font-size:15px}
+.nav-search{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);padding:5px 12px;border-radius:3px;font-size:12px;width:200px;font-family:inherit}
+.nav-search::placeholder{color:rgba(255,255,255,0.45)}
+/* SIDEBAR */
+.sidebar{background:var(--sidebar-bg);width:300px;position:fixed;top:48px;left:0;bottom:0;overflow-y:auto;z-index:900;display:flex;flex-direction:column}
+.sidebar-item{display:flex;align-items:center;gap:9px;padding:10px 16px;color:rgba(255,255,255,0.82);cursor:pointer;border-left:3px solid transparent;font-size:13px;text-decoration:none}
+.sidebar-item:hover{background:var(--sidebar-hover);color:white}
+.sidebar-item.active{background:var(--sidebar-active);border-left-color:#1a8a9c;color:white}
+.sidebar-item svg{width:16px;height:16px;opacity:0.75;flex-shrink:0}
+.sidebar-count{background:rgba(255,255,255,0.14);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:auto}
+.sidebar-arrow{margin-left:auto;opacity:0.55;font-size:11px}
+.sidebar-sub{padding:8px 16px 8px 40px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px}
+.sidebar-sub:hover{background:var(--sidebar-hover);color:white}
+.sidebar-collapse{padding:12px 16px;color:rgba(255,255,255,0.5);cursor:pointer;font-size:18px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto}
+/* WIZARD SIDEBAR */
+.wiz-header{color:white;font-size:13px;font-weight:600;padding:14px 16px 8px}
+.wiz-step-row{display:flex;flex-direction:column}
+.wiz-step{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 14px;color:rgba(255,255,255,0.55);font-size:13px}
+.wiz-step.done{color:rgba(255,255,255,0.82)}
+.wiz-step.current{color:white;font-weight:500}
+.wiz-dot{width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0}
+.wiz-step.done .wiz-dot{background:#1a8a9c}
+.wiz-step.current .wiz-dot{background:white;box-shadow:0 0 0 3px #1a8a9c}
+.wiz-line{width:1px;height:10px;background:rgba(255,255,255,0.15);margin-left:20px}
+.wiz-section{color:rgba(255,255,255,0.5);font-size:12px;padding:10px 16px 4px;letter-spacing:0.04em}
+/* MAIN */
+.main{margin-left:300px;margin-top:48px;min-height:calc(100vh - 48px)}
+/* BUTTONS */
+.btn{padding:6px 14px;border-radius:3px;border:1px solid var(--border);background:white;cursor:pointer;font-size:13px;color:#1a2332}
+.btn:hover{background:#f0f2f5}
+.btn-primary{background:var(--teal);color:white;border-color:var(--teal)}
+.btn-primary:hover{background:var(--teal-dark);border-color:var(--teal-dark)}
+.btn-export{background:#1a8a9c;color:white;border-color:#1a8a9c;font-weight:500}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:white;padding:9px 12px;text-align:left;font-weight:600;color:#1a2332;border-bottom:2px solid #dde2e8;white-space:nowrap;font-size:13px;cursor:pointer;user-select:none}
+.tbl th .sh{display:inline-flex;flex-direction:column;margin-left:3px;opacity:0.45;font-size:9px;line-height:1.1}
+.tbl td{padding:10px 12px;border-bottom:1px solid #e8ecf0;color:#1a2332;vertical-align:middle}
+.tbl tr:hover td{background:#f8fafc}
+.link{color:var(--link-color);cursor:pointer}
+.link:hover{text-decoration:underline}
+/* FORM */
+.flabel{font-size:13px;color:#1a2332;margin-bottom:3px;display:block}
+.req{color:var(--req-orange)}
+.finput{border:1px solid var(--input-border);border-radius:3px;padding:6px 10px;font-size:13px;color:#1a2332;background:white;width:100%;outline:none;font-family:inherit}
+.finput:focus{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.finput.filled{background:#fffbf0}
+.finput.disabled{background:#f4f5f7;color:#6b7280;cursor:not-allowed}
+.fselect{border:1px solid var(--input-border);border-radius:3px;padding:6px 28px 6px 10px;font-size:13px;color:#1a2332;background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 10px center;width:100%;outline:none;appearance:none;cursor:pointer;font-family:inherit}
+.fselect:focus{border-color:var(--teal)}
+.fselect.filled{background-color:#fffbf0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E")}
+.ftextarea{border:1px solid var(--input-border);border-radius:3px;padding:6px 10px;font-size:13px;background:white;width:100%;outline:none;resize:vertical;font-family:inherit;color:#1a2332}
+.ftextarea:focus{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal)}
+.ftextarea.filled{background:#fffbf0}
+/* DROPDOWN MENUS */
+.drop-menu{position:absolute;background:white;border:1px solid var(--border);border-radius:0 0 4px 4px;box-shadow:0 6px 16px rgba(0,0,0,0.15);z-index:1100;min-width:180px}
+.drop-item{padding:8px 18px;cursor:pointer;color:#1a2332;font-size:13px;border-left:3px solid transparent}
+.drop-item:hover{background:#f0f8ff;color:var(--link-color)}
+.drop-item.highlighted{color:var(--link-color)}
+/* CLAIM DROPDOWN */
+.claim-drop{position:absolute;top:48px;left:0;background:white;border:1px solid var(--border);border-radius:0 0 4px 4px;box-shadow:0 6px 16px rgba(0,0,0,0.15);z-index:1100;width:360px}
+.claim-drop-item{padding:9px 18px;cursor:pointer;color:var(--link-color);font-size:13px}
+.claim-drop-item:hover{background:#f0f8ff}
+/* INLINE CUSTOM SELECT */
+.cs-wrap{position:relative}
+.cs-display{border:1px solid var(--input-border);border-radius:3px;padding:6px 28px 6px 10px;font-size:13px;background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 10px center;cursor:pointer;min-height:31px;color:#1a2332;user-select:none;width:100%}
+.cs-display.ph{color:#6b7280}
+.cs-display.filled{background-color:#fffbf0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E")}
+.cs-options{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px;box-shadow:0 4px 10px rgba(0,0,0,0.12);z-index:1200;max-height:240px;overflow-y:auto}
+.cs-opt{padding:7px 14px;cursor:pointer;font-size:13px;color:#1a2332}
+.cs-opt:hover{background:#e8f4f8}
+.cs-opt.sel::before{content:'✓ ';color:var(--link-color)}
+.cs-opt.sel{color:var(--link-color)}
+/* CALENDAR */
+.cal-wrap{position:absolute;background:white;border:1px solid var(--border);border-radius:3px;box-shadow:0 4px 14px rgba(0,0,0,0.15);z-index:1300;padding:10px;width:300px}
+.cal-hdr{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.cal-yr{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;cursor:pointer;appearance:none;background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 6px center;padding-right:20px;font-family:inherit}
+.cal-mo{border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;cursor:pointer;appearance:none;background:white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b7280'/%3E%3C/svg%3E") no-repeat right 6px center;padding-right:20px;font-family:inherit}
+.cal-nav{background:none;border:none;cursor:pointer;padding:4px 8px;font-size:15px;color:#1a2332}
+.cal-nav:hover{background:#f0f2f5;border-radius:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;text-align:center}
+.cal-dh{font-size:11px;font-weight:600;color:#6b7280;padding:4px 0}
+.cal-d{font-size:12px;padding:5px 2px;border-radius:50%;cursor:pointer;color:#1a2332}
+.cal-d:hover{background:#e8f4f8}
+.cal-d.today{background:#1a8a9c;color:white}
+.cal-d.sel{background:#1a8a9c;color:white}
+.cal-d.om{color:#c0c5ce}
+.cal-today-row{border-top:1px solid var(--border);padding-top:6px;margin-top:6px;text-align:center}
+.cal-today-btn{background:none;border:none;color:var(--link-color);font-size:13px;cursor:pointer;padding:4px 0}
+/* SELECT BTN */
+.sel-btn{background:#1a8a9c;color:white;border:none;padding:4px 12px;border-radius:3px;cursor:pointer;font-size:12px}
+.sel-btn:hover{background:#0d7a8a}
+.unsel-btn{background:#1a8a9c;color:white;border:none;padding:4px 12px;border-radius:3px;cursor:pointer;font-size:12px}
+/* RADIO */
+.radio-row{display:flex;gap:18px;align-items:center}
+.rlabel{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#1a2332}
+/* SECTIONS */
+.section-hdr{font-size:14px;font-weight:600;color:#1a2332;margin-bottom:12px;padding-bottom:6px}
+/* INLINE TABLE */
+.itbl{width:100%;border-collapse:collapse;font-size:13px}
+.itbl th{background:#f4f5f7;padding:8px 12px;font-weight:600;color:#6b7280;text-align:left;border-bottom:1px solid var(--border);font-size:12px}
+.itbl td{padding:10px 12px;text-align:center;color:#6b7280}
+/* SPLIT BTN */
+.split-btn-wrap{display:inline-flex;border-radius:3px;overflow:hidden}
+.split-main{background:#1a8a9c;color:white;border:none;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.split-main:hover{background:#0d7a8a}
+.split-caret{background:#1a8a9c;color:white;border:none;border-left:1px solid rgba(255,255,255,0.3);padding:7px 9px;cursor:pointer;font-size:11px}
+.split-caret:hover{background:#0d7a8a}
+/* POLICY BANNER */
+.pol-banner{background:white;padding:10px 24px;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center;gap:4px}
+.pol-label{color:#6b7280}
+.pol-val{font-weight:600;margin-right:12px}
+.pol-val-link{color:var(--link-color);font-weight:600;margin-right:12px}
+/* STEP HEADER */
+.step-hdr{background:white;padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.step-title{font-size:19px;font-weight:400;color:#1a2332}
+.step-actions{display:flex;gap:8px}
+/* FORM CONTENT */
+.form-content{padding:20px 24px}
+.form-block{background:white;border:1px solid var(--border);border-radius:3px;padding:18px 22px;margin-bottom:16px}
+.form-block-inner{max-width:860px}
+/* HROW */
+.hrow{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:16px;margin-bottom:10px}
+.hrow-lbl{font-size:13px;color:#1a2332;text-align:right}
+/* 2COL FORM */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px 32px;align-items:start}
+/* INFO highlight */
+.dot-status{display:inline-block;width:8px;height:8px;border-radius:50%;background:#1ea97a;margin-right:4px}
+/* Misc */
+.sr-result-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.sr-result-tbl th{background:#f4f5f7;padding:9px 12px;font-weight:600;color:#6b7280;font-size:12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer}
+.sr-result-tbl th .sh{display:inline-flex;flex-direction:column;margin-left:3px;opacity:0.45;font-size:9px;line-height:1.1}
+.sr-result-tbl td{padding:9px 12px;border-bottom:1px solid #e8ecf0;color:#1a2332;vertical-align:middle}
+.sr-result-tbl tr.sel-row td{background:#e8f4f8}
+.hide{display:none!important}
+.overlay{position:fixed;inset:0;z-index:1050;cursor:default}
+/* scrollbar */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#f0f2f5}::-webkit-scrollbar-thumb{background:#b0b8c4;border-radius:3px}
+/* grid layout icon */
+.grid-icon-btn{background:white;border:1px solid var(--border);border-radius:3px;padding:5px 8px;cursor:pointer;color:#1a2332;font-size:13px}
+.grid-icon-btn:hover{background:#f0f2f5}
+/* info-top bubble */
+.infobubble{background:#2db87d;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:15px;position:fixed;bottom:28px;right:28px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.25);z-index:999}
+</style>
+</head>
+<body>
+
+<!-- INFO BUBBLE -->
+<div class="infobubble" title="Help">💡</div>
+
+<!-- TOP NAV -->
+<nav class="top-nav" id="topNav">
+  <!-- Logo -->
+  <div class="logo-box">
+    <div class="logo-icon">G</div>
+    <span>ClaimCenter™</span>
+  </div>
+  <!-- Nav Items -->
+  <button class="nav-btn" id="navDesktop">Desktop <span class="caret">▾</span></button>
+  <div style="position:relative">
+    <button class="nav-btn" id="navClaim" onclick="toggleClaimDrop(event)">Claim <span class="caret">▾</span></button>
+    <!-- Claim Dropdown -->
+    <div class="claim-drop hide" id="claimDrop">
+      <div style="padding:10px 18px 6px;font-size:13px;font-weight:600;color:#1a2332;border-bottom:1px solid var(--border)">
+        <div class="claim-drop-item" style="padding:4px 0;font-weight:600;color:#1a2332;cursor:pointer" onclick="event.stopPropagation();event.preventDefault();handleNewClaim()">New Claim</div>
+      </div>
+      <div style="padding:8px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;color:#1a2332;white-space:nowrap">Claim #:</span>
+        <input class="finput" style="width:160px" placeholder="###-##-######">
+        <button style="background:#f0f2f5;border:1px solid var(--border);border-radius:3px;padding:5px 9px;cursor:pointer;font-size:13px">🔍</button>
+      </div>
+      <div style="padding:4px 0">
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000011 Alison John</div>
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000110 John Smith</div>
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000221 John Smith</div>
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000305 Ray John</div>
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000527 Ray John</div>
+        <div class="claim-drop-item" onclick="closeClaimDrop()">000-00-000609 John Smith</div>
+      </div>
+    </div>
+  </div>
+  <button class="nav-btn" id="navSearch">Search <span class="caret">▾</span></button>
+  <button class="nav-btn" id="navAddress">Address Book <span class="caret">▾</span></button>
+  <button class="nav-btn" id="navVacation">Vacation</button>
+  <div class="nav-spacer"></div>
+  <button class="fnol-btn" id="fnolBtn" onclick="event.stopPropagation();startNewClaim()">Create a new FNOL</button>
+  <button class="nav-icon">🔖</button>
+  <button class="nav-icon">⚙</button>
+  <input class="nav-search" placeholder="Go to (Alt+/)">
+</nav>
+
+<!-- SIDEBAR - Activities View -->
+<aside class="sidebar" id="sidebarActivities">
+  <div class="sidebar-item active" onclick="showView('activities')">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 8h6M5 5h6M5 11h3"/></svg>
+    Actions <span class="sidebar-arrow">▶</span>
+  </div>
+  <div class="sidebar-item active" style="background:var(--sidebar-active);border-left-color:#1a8a9c" onclick="showView('activities')">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2.5 1.5"/></svg>
+    Activities <span class="sidebar-count">2</span>
+  </div>
+  <div class="sidebar-item" onclick="showView('activities')">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="10" rx="1"/><path d="M5 4V2M11 4V2"/></svg>
+    Claims <span class="sidebar-count">1</span>
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l2 4 4.5.7-3.2 3.1.75 4.4L8 12l-4.05 2.2.75-4.4L1.5 6.7 6 6z"/></svg>
+    Exposures <span class="sidebar-count">0</span>
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M3 4h7M3 12h5"/></svg>
+    Subrogations <span class="sidebar-count">0</span>
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="10" rx="1"/><path d="M5 4V2M11 4V2"/></svg>
+    Queues <span class="sidebar-count">0</span>
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M5 1v3M11 1v3M2 7h12"/></svg>
+    Calendar <span class="sidebar-arrow">▾</span>
+  </div>
+  <div class="sidebar-item">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4h14M1 8h14M1 12h14"/></svg>
+    Bulk Invoices
+  </div>
+  <div class="sidebar-collapse">«</div>
+</aside>
+
+<!-- SIDEBAR - Wizard View -->
+<aside class="sidebar hide" id="sidebarWizard">
+  <div class="sidebar-item" style="padding:10px 16px;cursor:default">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 8h6M5 5h6M5 11h3"/></svg>
+    Actions <span class="sidebar-arrow">▶</span>
+  </div>
+  <div class="wiz-header">New Claim Wizard</div>
+  <div class="wiz-step-row" id="wizSteps">
+    <!-- Steps injected by JS -->
+  </div>
+  <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.1)">
+    <div class="wiz-section">PARTIES INVOLVED</div>
+    <div class="sidebar-item" style="padding:8px 16px 8px 22px"><span style="opacity:0.6">Parties Involved</span></div>
+    <div class="wiz-section">POLICY</div>
+    <div class="sidebar-item" style="padding:8px 16px 8px 22px" id="sidePolicy">
+      Policy <span class="sidebar-arrow">▾</span>
+    </div>
+    <div id="sidePolicySub">
+      <div class="sidebar-sub">Policy General</div>
+      <div class="sidebar-sub">Policy Details</div>
+    </div>
+    <div class="sidebar-item" style="padding:8px 16px 8px 22px">Documents</div>
+    <div class="sidebar-item" style="padding:8px 16px 8px 22px">Notes</div>
+  </div>
+  <div class="sidebar-collapse">«</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main" id="mainContent">
+
+  <!-- ==================== ACTIVITIES VIEW ==================== -->
+  <div id="viewActivities">
+    <div style="background:white;border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+      <h1 style="font-size:20px;font-weight:400">Activities</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn">Assign</button>
+        <button class="btn">Skip</button>
+        <button class="btn">Complete</button>
+        <button class="btn">Approve</button>
+        <button class="btn">Reject</button>
+        <button class="btn btn-export">Print/Export</button>
+      </div>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="background:white;border:1px solid var(--border);border-radius:3px;overflow:hidden">
+        <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:0">
+            <div style="display:flex;align-items:center;gap:0">
+              <button style="border:1px solid var(--border);border-radius:3px 0 0 3px;padding:6px 14px;background:white;cursor:pointer;font-size:13px;border-right:none">My activities today</button>
+              <button style="border:1px solid var(--border);border-radius:0 3px 3px 0;padding:6px 10px;background:white;cursor:pointer;font-size:13px">▾</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="grid-icon-btn">▤</button>
+            <button class="grid-icon-btn">▾</button>
+          </div>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox"></th>
+              <th style="width:32px">★</th>
+              <th style="width:32px">📅</th>
+              <th>Due <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>Priority <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>Subject <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>Claim <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>Insured <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>Exposures</th>
+              <th>External <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>LOB <span class="sh"><span>▲</span><span>▼</span></span></th>
+              <th>State <span class="sh"><span>▲</span><span>▼</span></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td><span style="color:#f5a623;font-size:16px;cursor:pointer">★</span></td>
+              <td><span style="font-size:14px;cursor:pointer">📅</span></td>
+              <td style="color:#cc2222;font-weight:500">05/11/2026</td>
+              <td><span style="color:#cc2222">Urgent</span></td>
+              <td><a class="link" onclick="">Make initial contact with insured</a></td>
+              <td><a class="link">000-00-000609</a></td>
+              <td><a class="link">John Smith</a></td>
+              <td></td>
+              <td>No</td>
+              <td>USA Personal Auto</td>
+              <td>California</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== WIZARD VIEWS ==================== -->
+  <div id="viewWizard" class="hide">
+    <!-- Banner with pol info -->
+    <div class="pol-banner" id="polBanner">
+      <span class="pol-label">Pol:</span><span class="pol-val-link" id="bannerPol"></span>
+      <span class="pol-label">Ins:</span><span class="pol-val" id="bannerIns"></span>
+      <span class="pol-label">DoL:</span><span class="pol-val" id="bannerDol"></span>
+    </div>
+
+    <!-- Step 1: Find Policy -->
+    <div id="step1" class="hide">
+      <div class="step-hdr">
+        <span class="step-title" id="step1Title">Step 1: Search or Create Policy</span>
+        <div class="step-actions">
+          <button class="btn" onclick="cancelWizard()">Cancel</button>
+          <button class="btn btn-primary" id="step1Next" onclick="goStep2()" disabled>Next</button>
+        </div>
+      </div>
+      <div class="form-content">
+        <!-- Find/Create radio -->
+        <div style="margin-bottom:16px;display:flex;gap:24px;align-items:center">
+          <label class="rlabel"><input type="radio" name="policyMode" value="find" checked onchange="setPolicyMode('find')"> Find Policy</label>
+          <label class="rlabel"><input type="radio" name="policyMode" value="create" onchange="setPolicyMode('create')"> Create Unverified Policy</label>
+        </div>
+        <div class="form-block" id="policySearchForm">
+          <!-- 4-column grid: label | input | label | input -->
+          <div style="display:grid;grid-template-columns:140px 1fr 140px 1fr;gap:8px 16px;align-items:center;margin-bottom:14px">
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Policy #</label>
+            <input class="finput" id="srPolicyNo" placeholder="" oninput="checkSearchReady()">
+            <label style="font-size:13px;text-align:right;white-space:nowrap">SSN or Tax ID</label>
+            <input class="finput" id="srSSN" placeholder="">
+
+            <label style="font-size:13px;text-align:right;white-space:nowrap">First name</label>
+            <input class="finput" id="srFirst" placeholder="" oninput="checkSearchReady()">
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Country</label>
+            <select class="fselect" id="srCountry"><option>&lt;none&gt;</option><option>United States</option></select>
+
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Last name</label>
+            <input class="finput" id="srLast" placeholder="" oninput="checkSearchReady()">
+            <label style="font-size:13px;text-align:right;white-space:nowrap">City</label>
+            <div style="display:flex">
+              <input class="finput" id="srCity" placeholder="" style="border-radius:3px 0 0 3px">
+              <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#f4f5f7;padding:6px 8px;cursor:pointer">⊞</button>
+            </div>
+
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Organization Name</label>
+            <input class="finput" id="srOrg" placeholder="">
+            <label style="font-size:13px;text-align:right;white-space:nowrap">State</label>
+            <select class="fselect" id="srState"><option>&lt;none&gt;</option><option>California</option><option>Illinois</option></select>
+
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Policy Type</label>
+            <select class="fselect" id="srPType"><option>&lt;none&gt;</option><option>USA Personal Auto</option></select>
+            <label style="font-size:13px;text-align:right;white-space:nowrap">ZIP Code</label>
+            <div style="display:flex">
+              <input class="finput" id="srZip" placeholder="#####-####" style="border-radius:3px 0 0 3px">
+              <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#f4f5f7;padding:6px 8px;cursor:pointer">⊞</button>
+            </div>
+
+            <label style="font-size:13px;text-align:right;white-space:nowrap">Loss Date</label>
+            <div style="display:flex;position:relative">
+              <input class="finput" id="srLossDate" placeholder="MM/DD/YYYY" style="border-radius:3px 0 0 3px" readonly>
+              <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#1a8a9c;padding:6px 9px;cursor:pointer;color:white" onclick="openCalSearch()">📅</button>
+            </div>
+            <label style="font-size:13px;text-align:right;white-space:nowrap">VIN</label>
+            <input class="finput" id="srVIN" placeholder="">
+          </div>
+          <div style="display:flex;gap:8px;padding-left:156px">
+            <button class="btn btn-primary" id="searchBtn" onclick="runSearch()">Search</button>
+            <button class="btn" onclick="resetSearch()">Reset</button>
+          </div>
+        </div>
+
+        <!-- Search Results -->
+        <div style="border:1px solid var(--border);border-radius:3px;overflow:hidden" id="searchResultsBox">
+          <div style="background:#f4f5f7;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+            <span style="font-size:14px;font-weight:600">Search Results</span>
+            <div style="display:flex;gap:4px">
+              <button class="grid-icon-btn">▤</button>
+              <button class="grid-icon-btn">▾</button>
+            </div>
+          </div>
+          <div id="searchResultsContent">
+            <table class="sr-result-tbl">
+              <thead>
+                <tr>
+                  <th style="width:80px"></th>
+                  <th>Policy # <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>Insured <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>Address <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>City <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>State <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>ZIP Code <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>Effective <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>Expires <span class="sh"><span>▲</span><span>▼</span></span></th>
+                  <th>Type <span class="sh"><span>▲</span><span>▼</span></span></th>
+                </tr>
+              </thead>
+              <tbody id="srTbody">
+                <tr><td colspan="10" style="text-align:center;color:#6b7280;padding:20px">No data to display</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- New Claim section (shown after policy selected) -->
+        <div id="newClaimSection" class="hide" style="margin-top:16px;max-width:500px;background:white;border:1px solid var(--border);border-radius:3px;padding:18px 22px">
+          <div class="section-hdr">New Claim</div>
+          <div class="hrow" style="margin-bottom:10px">
+            <div class="hrow-lbl"><span class="req">*</span> Loss Date</div>
+            <div style="display:flex;gap:0;position:relative">
+              <input class="finput filled" id="claimLossDate" placeholder="MM/DD/YYYY" style="border-radius:3px 0 0 3px" readonly>
+              <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#1a8a9c;padding:6px 9px;cursor:pointer;color:white" onclick="openCalClaim()">📅</button>
+              <div class="cal-wrap hide" id="calClaim" style="top:34px;left:0"><!-- calendar injected --></div>
+            </div>
+          </div>
+          <div class="hrow" style="margin-bottom:10px">
+            <div class="hrow-lbl">Time</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input class="finput" placeholder="hh:mm" style="width:70px">
+              <input class="finput" placeholder="aa" style="width:45px">
+            </div>
+          </div>
+          <div class="hrow" style="align-items:flex-start">
+            <div class="hrow-lbl" style="padding-top:4px"><span class="req">*</span> Type of Claim</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label class="rlabel"><input type="radio" name="claimType" value="auto" checked> Auto</label>
+              <label class="rlabel"><input type="radio" name="claimType" value="first"> Auto - Auto First and Final</label>
+              <label class="rlabel"><input type="radio" name="claimType" value="quick"> Auto - Quick Claim Auto</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Calendar for search (hidden by default) -->
+      <div class="cal-wrap hide" id="calSearch" style="position:fixed;z-index:1400"></div>
+    </div>
+
+    <!-- Step 2: Basic Info -->
+    <div id="step2" class="hide">
+      <div class="step-hdr">
+        <span class="step-title">Step 2 of 5: Basic information</span>
+        <div class="step-actions">
+          <button class="btn" onclick="cancelWizard()">Cancel</button>
+          <button class="btn" onclick="goStep1FromStep2()">Back</button>
+          <button class="btn btn-primary" onclick="goStep3()">Next</button>
+        </div>
+      </div>
+      <div class="form-content">
+        <div class="two-col" style="align-items:start">
+          <!-- Left: Reported By -->
+          <div>
+            <div class="form-block">
+              <div class="section-hdr">Reported By</div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">How Reported</div>
+                <select class="fselect filled" id="howReported"><option selected>Phone</option><option>Email</option><option>In Person</option><option>Mail</option></select>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> Name</div>
+                <div style="display:flex;gap:6px">
+                  <div class="cs-wrap" style="flex:1">
+                    <div class="cs-display ph" id="reporterNameDisp" onclick="toggleCS('reporterName')">&#x3c;none&#x3e;</div>
+                    <div class="cs-options hide" id="reporterNameOpts">
+                      <div class="cs-opt sel" onclick="selectReporter('none')">&#x3c;none&#x3e;</div>
+                      <div class="cs-opt" onclick="selectReporter('Alison John')">Alison John</div>
+                    </div>
+                  </div>
+                  <button style="background:#1a8a9c;color:white;border:none;border-radius:3px;padding:6px 9px;cursor:pointer;font-size:14px">▾</button>
+                </div>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> Relation to Insured</div>
+                <div class="cs-wrap">
+                  <div class="cs-display ph" id="relationDisp" onclick="toggleCS('relation')">&#x3c;none&#x3e;</div>
+                  <div class="cs-options hide" id="relationOpts">
+                    <div class="cs-opt sel" onclick="selectRelation('none')">&#x3c;none&#x3e;</div>
+                    <div class="cs-opt" onclick="selectRelation('Self/Insured')">Self/Insured</div>
+                    <div class="cs-opt" onclick="selectRelation('Spouse')">Spouse</div>
+                    <div class="cs-opt" onclick="selectRelation('Child')">Child</div>
+                    <div class="cs-opt" onclick="selectRelation('Other')">Other</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hrow">
+                <div class="hrow-lbl">Date of Notice</div>
+                <input class="finput" value="05/15/2026" readonly>
+              </div>
+            </div>
+
+            <!-- Insured section -->
+            <div class="form-block" id="insuredSection">
+              <div class="section-hdr">Insured</div>
+              <div class="hrow" style="margin-bottom:8px">
+                <div class="hrow-lbl">Name</div>
+                <a class="link">Alison John</a>
+              </div>
+              <div class="hrow" style="margin-bottom:8px">
+                <div class="hrow-lbl">Address</div>
+                <span>120 - Home street, AAAA, CA 11111</span>
+              </div>
+              <div class="hrow">
+                <div class="hrow-lbl">Primary Phone</div>
+                <span></span>
+              </div>
+            </div>
+
+            <!-- Main Contact -->
+            <div class="form-block">
+              <div class="section-hdr">Main Contact</div>
+              <div class="hrow">
+                <div class="hrow-lbl">Same Person?</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label class="rlabel"><input type="radio" name="mainContact" value="same" checked> Same as reporter</label>
+                  <label class="rlabel"><input type="radio" name="mainContact" value="diff"> Different person</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right: Involved Vehicles -->
+          <div>
+            <div class="form-block">
+              <div class="section-hdr">Involved Vehicle(s)</div>
+              <p style="color:#6b7280;font-size:13px">No vehicles added yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expanded reporter info (shown when reporter selected) -->
+        <div id="reporterExpandedSection" class="hide">
+          <div class="form-block">
+            <div class="section-hdr">Verify Date of Birth</div>
+            <div class="hrow"><div class="hrow-lbl">Date of Birth</div><input class="finput" placeholder="MM/DD/YYYY" style="max-width:180px"></div>
+          </div>
+          <div class="form-block">
+            <div class="section-hdr">Confirm Contact Info</div>
+            <div class="hrow" style="margin-bottom:8px"><div class="hrow-lbl">Address</div><span>120 - Home street, AAAA, CA 11111</span></div>
+            <div class="hrow" style="margin-bottom:8px"><div class="hrow-lbl">Work Phone</div><input class="finput" style="max-width:220px"></div>
+            <div class="hrow" style="margin-bottom:8px"><div class="hrow-lbl">Home Phone</div><input class="finput" style="max-width:220px"></div>
+            <div class="hrow" style="margin-bottom:8px"><div class="hrow-lbl">Mobile</div><input class="finput" style="max-width:220px"></div>
+            <div class="hrow" style="margin-bottom:8px"><div class="hrow-lbl">Primary Phone</div><select class="fselect" style="max-width:180px"><option>Home</option><option>Work</option><option>Mobile</option></select></div>
+            <div class="hrow" style="margin-bottom:12px"><div class="hrow-lbl">Email</div><input class="finput" type="email" style="max-width:280px"></div>
+            <button class="btn btn-primary">Edit Contact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Loss Details -->
+    <div id="step3" class="hide">
+      <div class="step-hdr">
+        <span class="step-title">Step 3 of 5: Add claim information</span>
+        <div class="step-actions">
+          <button class="btn" onclick="cancelWizard()">Cancel</button>
+          <button class="btn" onclick="goStep2()">Back</button>
+          <button class="btn btn-primary" onclick="goStep4()">Next</button>
+          <button class="btn btn-primary" onclick="goStep4()">Finish</button>
+        </div>
+      </div>
+      <div class="form-content">
+        <div class="two-col" style="align-items:start">
+          <!-- Left column -->
+          <div>
+            <div class="form-block">
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">What Happened?</div>
+                <textarea class="ftextarea filled" id="whatHappened" style="min-height:80px">Glass Breakage</textarea>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Loss Date</div>
+                <span id="lossDateDisplay" style="font-size:13px">05/01/2026 12:01 AM</span>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> Loss Cause</div>
+                <div class="cs-wrap">
+                  <div class="cs-display filled" id="lossCauseDisp" onclick="toggleCS('lossCause')">Glass breakage</div>
+                  <div class="cs-options hide" id="lossCauseOpts">
+                    <div class="cs-opt sel" onclick="selectLossCause('none')">&#x3c;none&#x3e;</div>
+                    <div class="cs-opt" onclick="selectLossCause('Animal')">Animal</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision while turning left')">Collision while turning left</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with bicycle')">Collision with bicycle</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with fixed object')">Collision with fixed object</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with motor vehicle')">Collision with motor vehicle</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with other object')">Collision with other object</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with pedestrian')">Collision with pedestrian</div>
+                    <div class="cs-opt" onclick="selectLossCause('Collision with train or bus')">Collision with train or bus</div>
+                    <div class="cs-opt" onclick="selectLossCause('Damage in loading or unloading')">Damage in loading or unloading</div>
+                    <div class="cs-opt" onclick="selectLossCause('Falling or moving object')">Falling or moving object</div>
+                    <div class="cs-opt" onclick="selectLossCause('Fire')">Fire</div>
+                    <div class="cs-opt sel" onclick="selectLossCause('Glass breakage')">Glass breakage</div>
+                    <div class="cs-opt" onclick="selectLossCause('Malicious mischief and vandalism')">Malicious mischief and vandalism</div>
+                    <div class="cs-opt" onclick="selectLossCause('Rear-end collision')">Rear-end collision</div>
+                    <div class="cs-opt" onclick="selectLossCause('Riot and civil commotion')">Riot and civil commotion</div>
+                    <div class="cs-opt" onclick="selectLossCause('Rollover')">Rollover</div>
+                    <div class="cs-opt" onclick="selectLossCause('Theft Audio or other parts')">Theft Audio or other parts</div>
+                    <div class="cs-opt" onclick="selectLossCause('Theft of entire vehicle')">Theft of entire vehicle</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hrow">
+                <div class="hrow-lbl">Incident Only?</div>
+                <input type="checkbox" class="finput" style="width:auto;height:15px">
+              </div>
+            </div>
+          </div>
+          <!-- Right column: Location -->
+          <div>
+            <div class="form-block">
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> Location</div>
+                <div class="cs-wrap">
+                  <div class="cs-display filled" id="locationDisp" onclick="toggleCS('location')">Contact: 120 - Home street, A...</div>
+                  <div class="cs-options hide" id="locationOpts">
+                    <div class="cs-opt" onclick="selectLocation('contact')">Contact: 120 - Home street, AAAA, CA 11111</div>
+                    <div class="cs-opt sel" onclick="selectLocation('new')">New...</div>
+                  </div>
+                </div>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Country</div>
+                <input class="finput filled" value="United States" readonly>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Address 1</div>
+                <input class="finput filled" id="locAddr1" value="120 - Home street">
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Address 2</div>
+                <input class="finput" id="locAddr2">
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Address 3</div>
+                <input class="finput" id="locAddr3">
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> City</div>
+                <div style="display:flex;gap:0">
+                  <input class="finput filled" id="locCity" value="AAAA" style="border-radius:3px 0 0 3px">
+                  <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#f4f5f7;padding:6px 8px;cursor:pointer">⊞</button>
+                </div>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">County</div>
+                <input class="finput filled" id="locCounty" value="C_C_C">
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl"><span class="req">*</span> State</div>
+                <input class="finput filled" id="locState" value="California" readonly>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">ZIP Code</div>
+                <div style="display:flex;gap:0">
+                  <input class="finput filled" id="locZip" value="11111-####" style="border-radius:3px 0 0 3px">
+                  <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#f4f5f7;padding:6px 8px;cursor:pointer">⊞</button>
+                </div>
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Location Description</div>
+                <input class="finput" id="locDesc">
+              </div>
+              <div class="hrow" style="margin-bottom:10px">
+                <div class="hrow-lbl">Location Code</div>
+                <input class="finput" id="locCode">
+              </div>
+              <div class="hrow">
+                <div class="hrow-lbl">Jurisdiction</div>
+                <input class="finput filled" id="locJurisdiction" value="California" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Vehicles, People & Property -->
+        <div class="form-block">
+          <div class="section-hdr">Vehicles, People, &amp; Property</div>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <button class="btn btn-primary" style="display:flex;align-items:center;gap:6px"><span>🚗</span> Add Vehicle</button>
+            <button class="btn btn-primary" style="display:flex;align-items:center;gap:6px"><span>🚶</span> Add Pedestrian</button>
+            <button class="btn btn-primary" style="display:flex;align-items:center;gap:6px"><span>⚡</span> Add Property Damage</button>
+          </div>
+        </div>
+        <!-- At the Scene -->
+        <div class="form-block">
+          <div class="section-hdr">At the Scene</div>
+          <p style="color:#6b7280;font-size:13px">No scene information added.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Services -->
+    <div id="step4" class="hide">
+      <div class="step-hdr">
+        <span class="step-title">Step 4 of 5: Services</span>
+        <div class="step-actions">
+          <button class="btn" onclick="cancelWizard()">Cancel</button>
+          <button class="btn" onclick="goStep3()">Back</button>
+          <button class="btn btn-primary" onclick="goStep5()">Next</button>
+          <button class="btn btn-primary" onclick="goStep5()">Finish</button>
+        </div>
+      </div>
+      <div class="form-content">
+        <div class="form-block" style="max-width:700px">
+          <div class="section-hdr">Involved Vehicles</div>
+          <p style="color:#6b7280;font-size:13px;margin-bottom:16px">The services will be requested when the wizard is completed.</p>
+          <div style="border:1px solid var(--border);border-radius:3px;padding:14px 16px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" style="width:15px;height:15px"> Claim-level Services
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Save & Assign -->
+    <div id="step5" class="hide">
+      <div class="step-hdr">
+        <span class="step-title">Step 5 of 5: Save and Assign Claim</span>
+        <div class="step-actions">
+          <button class="btn" onclick="cancelWizard()">Cancel</button>
+          <button class="btn" onclick="goStep4()">Back</button>
+          <button class="btn btn-primary" onclick="finishWizard()">Finish</button>
+        </div>
+      </div>
+      <div class="form-content">
+        <div class="two-col" style="align-items:start">
+          <div>
+            <div class="form-block">
+              <div class="section-hdr">Assignment</div>
+              <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+                <input type="radio" name="assignType" checked style="margin-top:4px">
+                <div style="flex:1">
+                  <div style="margin-bottom:6px;font-size:13px">Assign claim and all exposures to:</div>
+                  <div style="display:flex;gap:0">
+                    <div class="cs-wrap" style="flex:1">
+                      <div class="cs-display filled" id="assignmentDisp" onclick="toggleCS('assignment')">Use automated assignment</div>
+                      <div class="cs-options hide" id="assignmentOpts">
+                        <div class="cs-opt sel" onclick="selectAssignment('Use automated assignment')">Use automated assignment</div>
+                        <div class="cs-opt" onclick="selectAssignment('Kerrie Winslow')">Kerrie Winslow</div>
+                      </div>
+                    </div>
+                    <button style="border:1px solid var(--input-border);border-left:none;border-radius:0 3px 3px 0;background:#f4f5f7;padding:6px 9px;cursor:pointer">🔍</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="form-block">
+              <div class="section-hdr">New Note</div>
+              <textarea class="ftextarea" style="min-height:100px;width:100%"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="form-block">
+          <div class="section-hdr">Exposures</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+            <div class="split-btn-wrap">
+              <button class="split-main">New Exposure</button>
+              <button class="split-caret">▾</button>
+            </div>
+            <button class="btn">Remove</button>
+            <div style="margin-left:auto;display:flex;gap:4px">
+              <button class="grid-icon-btn">▤</button>
+              <button class="grid-icon-btn">▾</button>
+            </div>
+          </div>
+          <table class="itbl">
+            <thead>
+              <tr>
+                <th style="width:32px"><input type="checkbox"></th>
+                <th># <span class="sh"><span>▲</span><span>▼</span></span></th>
+                <th>Type <span class="sh"><span>▲</span><span>▼</span></span></th>
+                <th>Coverage <span class="sh"><span>▲</span><span>▼</span></span></th>
+                <th>Claimant</th>
+                <th>Involving <span class="sh"><span>▲</span><span>▼</span></span></th>
+                <th>Status <span class="sh"><span>▲</span><span>▼</span></span></th>
+                <th>Created Via <span class="sh"><span>▲</span><span>▼</span></span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:20px">No data to display</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end viewWizard -->
+
+  <!-- ==================== CLAIM SAVED VIEW ==================== -->
+  <div id="viewSaved" class="hide">
+    <div style="background:white;padding:40px 40px 30px">
+      <h1 style="font-size:22px;font-weight:400;margin-bottom:20px">New Claim Saved</h1>
+      <div style="font-size:13px;line-height:2;margin-bottom:28px">
+        <p><strong>Claim 000-00-000721 has been successfully saved.</strong></p>
+        <p>Assigned Group: Auto1 - TeamC</p>
+        <p>Assigned User: Kerrie Winslow</p>
+      </div>
+      <div style="margin-bottom:8px;font-size:13px;font-weight:500">You can now:</div>
+      <ul style="list-style:disc;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+        <li><a class="link" onclick="cancelWizard()">View 000-00-000721, the newly saved claim (Alt+V)</a></li>
+        <li><a class="link" onclick="startNewClaim()">Create another new claim (Alt+N)</a></li>
+        <li><a class="link">Add Reserves to the newly saved claim (Alt+R)</a></li>
+        <li><a class="link">Make Payments on the newly saved claim (Alt+P)</a></li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+
+<!-- OVERLAY for closing dropdowns -->
+<div class="overlay hide" id="dropOverlay" onclick="closeAllDropdowns()"></div>
+
+<script>
+// ==================== STATE ====================
+let currentView = 'activities';
+let wizardStep = 1;
+let selectedPolicy = null;
+let claimLossDate = '';
+let reporterName = '';
+let relationToInsured = '';
+let lossCause = 'Glass breakage';
+let locationChoice = 'contact';
+
+// Policy data
+const policies = [
+  { policyNo: '9879831935', insured: 'Ray John', address: '121 Street', city: 'California', state: 'California', zip: '12123-1334', effective: '11/09/2027', expires: '11/09/2028', type: 'USA Personal Auto' },
+  { policyNo: '2101065708', insured: 'Alison John', address: '120 - Home street', city: 'AAAA', state: 'California', zip: '11111', effective: '11/07/2025', expires: '11/07/2026', type: 'USA Personal Auto' },
+  { policyNo: '2101065708', insured: 'Alison John', address: '120 - Home street', city: 'AAAA', state: 'California', zip: '11111', effective: '11/07/2024', expires: '11/07/2025', type: 'USA Personal Auto' },
+  { policyNo: '5756736588', insured: 'ABCA ascasa', address: '120 Pringle Ave', city: 'Walnut Creek', state: 'California', zip: '94596', effective: '11/06/2025', expires: '11/06/2026', type: 'USA Personal Auto' },
+  { policyNo: '9074888346', insured: 'Ray Newton', address: '143rd street', city: 'illnois', state: 'Illinois', zip: '12345-1234', effective: '11/06/2025', expires: '11/06/2026', type: 'USA Personal Auto' },
+  { policyNo: '9074888346', insured: 'Ray Newton', address: '143rd street', city: 'illnois', state: 'Illinois', zip: '12345-1234', effective: '11/06/2024', expires: '11/06/2025', type: 'USA Personal Auto' },
+  { policyNo: '3104276420', insured: 'John Smith', address: '110 Pringle Ave', city: 'Walnut Creek', state: 'California', zip: '94596', effective: '11/06/2025', expires: '11/06/2026', type: 'USA Personal Auto' },
+];
+
+// ==================== VIEWS ====================
+function showView(v) {
+  document.getElementById('viewActivities').classList.toggle('hide', v !== 'activities');
+  document.getElementById('viewWizard').classList.toggle('hide', v !== 'wizard');
+  document.getElementById('viewSaved').classList.toggle('hide', v !== 'saved');
+  document.getElementById('sidebarActivities').classList.toggle('hide', v !== 'activities');
+  document.getElementById('sidebarWizard').classList.toggle('hide', v === 'activities');
+  currentView = v;
+}
+
+// ==================== WIZARD ====================
+// Called from "New Claim" dropdown item (with stopPropagation)
+function handleNewClaim() {
+  // First close dropdown then open wizard
+  document.getElementById('claimDrop').classList.add('hide');
+  document.getElementById('dropOverlay').classList.add('hide');
+  setTimeout(startNewClaim, 10);
+}
+
+function startNewClaim() {
+  closeAllDropdowns();
+  selectedPolicy = null;
+  claimLossDate = '';
+  wizardStep = 1;
+  // Show wizard view
+  document.getElementById('viewActivities').classList.add('hide');
+  document.getElementById('viewSaved').classList.add('hide');
+  document.getElementById('viewWizard').classList.remove('hide');
+  document.getElementById('sidebarActivities').classList.add('hide');
+  document.getElementById('sidebarWizard').classList.remove('hide');
+  currentView = 'wizard';
+  // Show step 1
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.classList.toggle('hide', i !== 1);
+  }
+  wizardStep = 1;
+  updateWizardSidebar();
+  // Banner: show empty on step 1
+  const banner = document.getElementById('polBanner');
+  banner.style.display = 'flex';
+  document.getElementById('bannerPol').textContent = '';
+  document.getElementById('bannerIns').textContent = '';
+  document.getElementById('bannerDol').textContent = '';
+  // Reset form
+  resetPolicyStep();
+}
+
+function cancelWizard() {
+  document.getElementById('viewActivities').classList.remove('hide');
+  document.getElementById('viewWizard').classList.add('hide');
+  document.getElementById('viewSaved').classList.add('hide');
+  document.getElementById('sidebarActivities').classList.remove('hide');
+  document.getElementById('sidebarWizard').classList.add('hide');
+  currentView = 'activities';
+}
+
+function showWizardStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.classList.toggle('hide', i !== n);
+  }
+  wizardStep = n;
+  updateWizardSidebar();
+  updateBanner();
+}
+
+function updateBanner() {
+  const banner = document.getElementById('polBanner');
+  const pol = document.getElementById('bannerPol');
+  const ins = document.getElementById('bannerIns');
+  const dol = document.getElementById('bannerDol');
+  if (selectedPolicy) {
+    pol.textContent = selectedPolicy.policyNo;
+    ins.textContent = selectedPolicy.insured;
+    dol.textContent = claimLossDate || '';
+    banner.style.display = 'flex';
+  } else {
+    pol.textContent = '';
+    ins.textContent = '';
+    dol.textContent = '';
+    banner.style.display = wizardStep === 1 ? 'none' : 'flex';
+  }
+}
+
+const stepNames = ['Find Policy', 'Basic Info', 'Loss Details', 'Services', 'Save & Assign Claim'];
+
+function updateWizardSidebar() {
+  const cont = document.getElementById('wizSteps');
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const n = i + 1;
+    const cls = n < wizardStep ? 'done' : n === wizardStep ? 'current' : '';
+    html += `<div class="wiz-step ${cls}"><div class="wiz-dot"></div><span>${stepNames[i]}</span></div>`;
+    if (i < 4) html += '<div class="wiz-line"></div>';
+  }
+  cont.innerHTML = html;
+}
+
+function resetPolicyStep() {
+  document.getElementById('srTbody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#6b7280;padding:20px">No data to display</td></tr>';
+  document.getElementById('newClaimSection').classList.add('hide');
+  document.getElementById('step1Next').disabled = true;
+  document.getElementById('step1Title').textContent = 'Step 1: Search or Create Policy';
+  document.getElementById('claimLossDate').value = '';
+  claimLossDate = '';
+  selectedPolicy = null;
+}
+
+function checkSearchReady() {
+  const hasInput = ['srPolicyNo','srFirst','srLast','srCity'].some(id => document.getElementById(id).value.trim());
+  document.getElementById('searchBtn').disabled = false;
+}
+
+function renderAllResults() {
+  const tbody = document.getElementById('srTbody');
+  let html = '';
+  policies.forEach((p, idx) => {
+    html += `<tr>
+      <td><button class="sel-btn" onclick="selectPolicy(${idx})">Select</button></td>
+      <td><a class="link">${p.policyNo}</a></td>
+      <td>${p.insured}</td>
+      <td>${p.address}</td>
+      <td>${p.city}</td>
+      <td>${p.state}</td>
+      <td>${p.zip}</td>
+      <td>${p.effective}</td>
+      <td>${p.expires}</td>
+      <td>${p.type}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function renderSelectedOnly(idx) {
+  const p = policies[idx];
+  const tbody = document.getElementById('srTbody');
+  tbody.innerHTML = `<tr class="sel-row">
+    <td><button class="unsel-btn" onclick="unselectPolicy()">Unselect</button></td>
+    <td><a class="link">${p.policyNo}</a></td>
+    <td>${p.insured}</td>
+    <td>${p.address}</td>
+    <td>${p.city}</td>
+    <td>${p.state}</td>
+    <td>${p.zip}</td>
+    <td>${p.effective}</td>
+    <td>${p.expires}</td>
+    <td>${p.type}</td>
+  </tr>`;
+}
+
+function runSearch() {
+  renderAllResults();
+}
+
+function selectPolicy(idx) {
+  selectedPolicy = { ...policies[idx], _idx: idx };
+  renderSelectedOnly(idx);
+  document.getElementById('newClaimSection').classList.remove('hide');
+  document.getElementById('step1Title').textContent = 'Step 1 of 5: Search or Create Policy';
+  checkStep1NextReady();
+}
+
+function unselectPolicy() {
+  selectedPolicy = null;
+  renderAllResults();
+  document.getElementById('newClaimSection').classList.add('hide');
+  document.getElementById('step1Next').disabled = true;
+  document.getElementById('step1Title').textContent = 'Step 1: Search or Create Policy';
+  document.getElementById('claimLossDate').value = '';
+  claimLossDate = '';
+}
+
+function checkStep1NextReady() {
+  const ready = selectedPolicy && claimLossDate;
+  document.getElementById('step1Next').disabled = !ready;
+}
+
+function resetSearch() {
+  ['srPolicyNo','srSSN','srFirst','srLast','srOrg','srCity','srZip','srVIN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('srCountry').selectedIndex = 0;
+  document.getElementById('srState').selectedIndex = 0;
+  document.getElementById('srPType').selectedIndex = 0;
+  document.getElementById('srTbody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:#6b7280;padding:20px">No data to display</td></tr>';
+  selectedPolicy = null;
+  claimLossDate = '';
+  document.getElementById('claimLossDate').value = '';
+  document.getElementById('newClaimSection').classList.add('hide');
+  document.getElementById('step1Next').disabled = true;
+}
+
+function setPolicyMode(m) { /* radio only */ }
+
+function goStep2() {
+  if (!selectedPolicy || !claimLossDate) return;
+  showWizardStep(2);
+}
+function goStep1FromStep2() { showWizardStep(1); }
+function goStep3() { showWizardStep(3); updateLossDateDisplay(); }
+function goStep4() { showWizardStep(4); }
+function goStep5() { showWizardStep(5); }
+function finishWizard() { showView('saved'); }
+
+function updateLossDateDisplay() {
+  const el = document.getElementById('lossDateDisplay');
+  if (el && claimLossDate) el.textContent = claimLossDate + ' 12:01 AM';
+}
+
+// ==================== CLAIM DROPDOWN ====================
+function toggleClaimDrop(e) {
+  e.stopPropagation();
+  const drop = document.getElementById('claimDrop');
+  const isHidden = drop.classList.contains('hide');
+  closeAllDropdowns();
+  if (isHidden) {
+    drop.classList.remove('hide');
+    document.getElementById('dropOverlay').classList.remove('hide');
+  }
+}
+function closeClaimDrop() {
+  document.getElementById('claimDrop').classList.add('hide');
+  document.getElementById('dropOverlay').classList.add('hide');
+}
+function closeAllDropdowns() {
+  document.getElementById('claimDrop').classList.add('hide');
+  document.getElementById('dropOverlay').classList.add('hide');
+  closeAllCS();
+  closeAllCals();
+}
+
+// ==================== CUSTOM SELECTS ====================
+const csMap = {};
+function toggleCS(name) {
+  const opts = document.getElementById(name + 'Opts');
+  if (!opts) return;
+  const wasHidden = opts.classList.contains('hide');
+  closeAllCS();
+  if (wasHidden) {
+    opts.classList.remove('hide');
+  }
+}
+function closeAllCS() {
+  document.querySelectorAll('.cs-options').forEach(el => el.classList.add('hide'));
+}
+
+function selectReporter(val) {
+  closeAllCS();
+  const disp = document.getElementById('reporterNameDisp');
+  if (val === 'none') {
+    disp.textContent = '<none>';
+    disp.classList.add('ph');
+    disp.classList.remove('filled');
+    document.getElementById('reporterExpandedSection').classList.add('hide');
+    document.getElementById('relationDisp').textContent = '<none>';
+    document.getElementById('relationDisp').classList.add('ph');
+    document.getElementById('relationDisp').classList.remove('filled');
+  } else {
+    disp.textContent = val;
+    disp.classList.remove('ph');
+    disp.classList.add('filled');
+    reporterName = val;
+    // Auto-set relation
+    selectRelation('Self/Insured');
+    document.getElementById('reporterExpandedSection').classList.remove('hide');
+  }
+}
+
+function selectRelation(val) {
+  closeAllCS();
+  const disp = document.getElementById('relationDisp');
+  if (val === 'none') {
+    disp.textContent = '<none>';
+    disp.classList.add('ph');
+    disp.classList.remove('filled');
+  } else {
+    disp.textContent = val;
+    disp.classList.remove('ph');
+    disp.classList.add('filled');
+    relationToInsured = val;
+  }
+}
+
+function selectLossCause(val) {
+  closeAllCS();
+  const disp = document.getElementById('lossCauseDisp');
+  if (val === 'none') {
+    disp.textContent = '<none>';
+    disp.classList.add('ph');
+    disp.classList.remove('filled');
+    lossCause = '';
+  } else {
+    disp.textContent = val;
+    disp.classList.remove('ph');
+    disp.classList.add('filled');
+    lossCause = val;
+  }
+}
+
+function selectLocation(val) {
+  closeAllCS();
+  const disp = document.getElementById('locationDisp');
+  locationChoice = val;
+  if (val === 'contact') {
+    disp.textContent = 'Contact: 120 - Home street, A...';
+    disp.classList.remove('ph');
+    disp.classList.add('filled');
+    fillLocationFromContact();
+  } else {
+    disp.textContent = 'New...';
+    disp.classList.remove('ph');
+    disp.classList.add('filled');
+    clearLocation();
+  }
+}
+
+function fillLocationFromContact() {
+  setLocField('locAddr1', '120 - Home street');
+  setLocField('locCity', 'AAAA');
+  setLocField('locCounty', 'C_C_C');
+  setLocField('locState', 'California');
+  setLocField('locZip', '11111-####');
+  setLocField('locJurisdiction', 'California');
+}
+
+function clearLocation() {
+  ['locAddr1','locAddr2','locAddr3','locCity','locCounty','locState','locZip','locDesc','locCode','locJurisdiction'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.classList.remove('filled'); }
+  });
+}
+
+function setLocField(id, val) {
+  const el = document.getElementById(id);
+  if (el) { el.value = val; el.classList.add('filled'); }
+}
+
+function selectAssignment(val) {
+  closeAllCS();
+  const disp = document.getElementById('assignmentDisp');
+  disp.textContent = val;
+  disp.classList.remove('ph');
+  disp.classList.add('filled');
+}
+
+// ==================== CALENDAR ====================
+let activeCalId = null;
+let calState = { year: 2026, month: 4 }; // May = 4
+
+function openCalSearch() {
+  openCal('calSearch', 'search');
+}
+function openCalClaim() {
+  openCal('calClaim', 'claim');
+}
+
+function openCal(calId, target) {
+  closeAllCals();
+  activeCalId = calId;
+  const cal = document.getElementById(calId);
+  renderCal(cal, target);
+  cal.classList.remove('hide');
+}
+
+function closeAllCals() {
+  document.querySelectorAll('.cal-wrap').forEach(el => el.classList.add('hide'));
+  activeCalId = null;
+}
+
+function renderCal(container, target) {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const yr = calState.year;
+  const mo = calState.month;
+  const daysInMonth = new Date(yr, mo + 1, 0).getDate();
+  const firstDay = new Date(yr, mo, 1).getDay();
+  const prevDays = new Date(yr, mo, 0).getDate();
+
+  let daysHtml = '<div class="cal-dh">S</div><div class="cal-dh">M</div><div class="cal-dh">T</div><div class="cal-dh">W</div><div class="cal-dh">T</div><div class="cal-dh">F</div><div class="cal-dh">S</div>';
+  // Prev month fill
+  for (let i = firstDay - 1; i >= 0; i--) {
+    daysHtml += `<div class="cal-d om">${prevDays - i}</div>`;
+  }
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = yr === 2026 && mo === 4 && d === 15;
+    const cls = isToday ? 'today' : '';
+    daysHtml += `<div class="cal-d ${cls}" onclick="pickDate(${yr},${mo},${d},'${target}')">${d}</div>`;
+  }
+  // Next month fill
+  const total = firstDay + daysInMonth;
+  const rem = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= rem; d++) {
+    daysHtml += `<div class="cal-d om">${d}</div>`;
+  }
+
+  // Year options
+  let yrOpts = '';
+  for (let y = 2020; y <= 2030; y++) {
+    yrOpts += `<option value="${y}" ${y === yr ? 'selected' : ''}>${y}</option>`;
+  }
+  let moOpts = '';
+  months.forEach((m, i) => {
+    moOpts += `<option value="${i}" ${i === mo ? 'selected' : ''}>${m}</option>`;
+  });
+
+  container.innerHTML = `
+    <div class="cal-hdr">
+      <select class="cal-yr" onchange="calChangeYear(this.value,'${target}')">${yrOpts}</select>
+      <button class="cal-nav" onclick="calNav(-1,'${target}')">‹</button>
+      <select class="cal-mo" onchange="calChangeMonth(this.value,'${target}')">${moOpts}</select>
+      <button class="cal-nav" onclick="calNav(1,'${target}')">›</button>
+    </div>
+    <div class="cal-grid">${daysHtml}</div>
+    <div class="cal-today-row"><button class="cal-today-btn" onclick="pickToday('${target}')">Today</button></div>
+  `;
+}
+
+function calNav(dir, target) {
+  calState.month += dir;
+  if (calState.month < 0) { calState.month = 11; calState.year--; }
+  if (calState.month > 11) { calState.month = 0; calState.year++; }
+  const calId = target === 'claim' ? 'calClaim' : 'calSearch';
+  renderCal(document.getElementById(calId), target);
+}
+function calChangeYear(y, target) {
+  calState.year = parseInt(y);
+  const calId = target === 'claim' ? 'calClaim' : 'calSearch';
+  renderCal(document.getElementById(calId), target);
+}
+function calChangeMonth(m, target) {
+  calState.month = parseInt(m);
+  const calId = target === 'claim' ? 'calClaim' : 'calSearch';
+  renderCal(document.getElementById(calId), target);
+}
+
+function pickDate(yr, mo, d, target) {
+  const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const dateStr = `${months[mo]}/${String(d).padStart(2,'0')}/${yr}`;
+  if (target === 'claim') {
+    claimLossDate = dateStr;
+    document.getElementById('claimLossDate').value = dateStr;
+    document.getElementById('claimLossDate').classList.add('filled');
+    checkStep1NextReady();
+  } else {
+    document.getElementById('srLossDate').value = dateStr;
+    document.getElementById('srLossDate').classList.add('filled');
+  }
+  closeAllCals();
+}
+
+function pickToday(target) {
+  pickDate(2026, 4, 15, target);
+}
+
+// ==================== GLOBAL CLICK HANDLER ====================
+document.addEventListener('click', function(e) {
+  const claimDropBtn = document.getElementById('navClaim');
+  const claimDrop = document.getElementById('claimDrop');
+  if (!claimDropBtn.contains(e.target) && !claimDrop.contains(e.target)) {
+    claimDrop.classList.add('hide');
+  }
+  // Close custom selects if clicking outside
+  if (!e.target.closest('.cs-wrap')) {
+    closeAllCS();
+  }
+  // Close calendars if clicking outside
+  if (!e.target.closest('.cal-wrap') && !e.target.closest('button[onclick*="Cal"]') && !e.target.closest('button[onclick*="cal"]')) {
+    closeAllCals();
+  }
+});
+
+// ==================== INIT ====================
+updateWizardSidebar();
+showView('activities');
+// Pre-fill step 3 location
+setTimeout(() => {
+  fillLocationFromContact();
+  document.getElementById('locationDisp').textContent = 'Contact: 120 - Home street, A...';
+  document.getElementById('locationDisp').classList.add('filled');
+}, 100);
+</script>
+</body>
+</html>

@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salesforce - Sales</title>
+<style>
+:root {
+  --sf-blue:#0070D2;--sf-blue-dark:#005FB2;--sf-navy:#032D60;
+  --sf-white:#FFFFFF;--sf-bg:#B0C4DF;--sf-border:#DDDBDA;
+  --sf-text:#3E3E3C;--sf-text-muted:#706E6B;--sf-link:#0070D2;
+  --sf-green:#04844B;--sf-orange:#DD7A01;--sf-red:#C23934;
+  --sf-yellow-bg:#FFFCE3;--sf-stage-done:#04844B;
+  --sf-font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sf-font);font-size:13px;color:var(--sf-text);background:var(--sf-bg);min-height:100vh;}
+a{color:var(--sf-link);text-decoration:none;cursor:pointer;}
+a:hover{text-decoration:underline;}
+button{font-family:var(--sf-font);cursor:pointer;}
+input,select,textarea{font-family:var(--sf-font);}
+
+/* DEV BANNER */
+.dev-banner{background:#1B2A35;color:#fff;font-size:12px;padding:5px 14px;display:flex;align-items:center;gap:8px;}
+.dev-banner-icon{color:#54C7FF;font-weight:700;font-size:13px;border:1px solid #54C7FF;padding:1px 4px;border-radius:2px;font-family:monospace;}
+
+/* HEADER */
+.sf-header{background:#fff;height:52px;display:flex;align-items:center;padding:0 12px;gap:6px;border-bottom:1px solid var(--sf-border);position:sticky;top:0;z-index:200;}
+.sf-logo{width:34px;height:34px;cursor:pointer;flex-shrink:0;}
+.sf-logo svg{width:34px;height:34px;}
+.sf-search-wrap{position:absolute;left:50%;transform:translateX(-50%);width:380px;}
+.sf-search-wrap input{width:100%;height:30px;border:1px solid var(--sf-border);border-radius:4px;padding:0 8px 0 28px;font-size:13px;outline:none;}
+.sf-search-wrap input:focus{border-color:var(--sf-blue);box-shadow:0 0 0 1px var(--sf-blue);}
+.sf-search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#706E6B;font-size:13px;}
+.overdue-btn{border:2px solid var(--sf-orange);color:var(--sf-orange);background:transparent;padding:4px 10px;border-radius:4px;font-size:13px;font-weight:500;white-space:nowrap;}
+.overdue-btn:hover{background:#FFF3E0;}
+.sf-header-icons{display:flex;align-items:center;gap:2px;margin-left:auto;}
+.hdr-icon{width:30px;height:30px;border:1px solid transparent;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#706E6B;font-size:15px;background:transparent;}
+.hdr-icon:hover{background:#EAF0F8;}
+.hdr-avatar{width:30px;height:30px;border-radius:50%;background:#0070D2;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+/* NAV */
+.sf-nav{background:#fff;border-bottom:1px solid var(--sf-border);padding:0 14px;display:flex;align-items:center;gap:0;overflow-x:auto;}
+.sf-nav::-webkit-scrollbar{height:3px;}
+.sf-nav::-webkit-scrollbar-thumb{background:var(--sf-border);}
+.nav-app-name{font-size:14px;font-weight:700;color:var(--sf-text);padding:12px 12px 12px 0;border-right:1px solid var(--sf-border);margin-right:4px;white-space:nowrap;}
+.nav-item{padding:12px 10px;font-size:13px;color:var(--sf-text-muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;display:flex;align-items:center;gap:3px;user-select:none;}
+.nav-item:hover{color:var(--sf-text);}
+.nav-item.active{color:var(--sf-blue);border-bottom:2px solid var(--sf-blue);font-weight:500;}
+.nav-item .nav-arrow{font-size:10px;color:#AEAEAE;}
+
+/* SCREEN MANAGEMENT */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* PAGE BODY */
+.page-body{padding:16px;}
+
+/* HOME - QUARTERLY */
+.home-grid{display:grid;grid-template-columns:1fr 280px;gap:16px;}
+.home-main{}
+.home-aside{}
+.card{background:#fff;border:1px solid var(--sf-border);border-radius:4px;}
+.qp-card{padding:0;}
+.qp-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--sf-border);}
+.qp-title{font-size:14px;font-weight:700;}
+.qp-meta{font-size:12px;color:var(--sf-text-muted);}
+.qp-stats{padding:10px 16px;display:flex;gap:24px;border-bottom:1px solid var(--sf-border);}
+.qp-stat label{font-size:11px;font-weight:700;color:var(--sf-text-muted);letter-spacing:.5px;}
+.qp-stat span{font-size:18px;font-weight:700;margin-left:6px;}
+.qp-stat .goal-val{font-size:18px;font-weight:700;}
+.qp-chart{padding:16px;height:240px;position:relative;}
+.chart-empty-msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sf-text-muted);font-size:13px;text-align:center;}
+.qp-legend{padding:8px 16px 12px;display:flex;gap:16px;justify-content:center;border-top:1px solid var(--sf-border);}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--sf-text-muted);}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+.panel-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
+.mini-card{background:#fff;border:1px solid var(--sf-border);border-radius:4px;padding:16px;}
+.mini-card-title{font-size:14px;font-weight:700;margin-bottom:8px;}
+.mini-card-empty{padding:40px 16px;text-align:center;color:var(--sf-text-muted);}
+.assistant-card{background:#fff;border:1px solid var(--sf-border);border-radius:4px;padding:16px;text-align:center;}
+.assistant-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.assistant-empty{color:var(--sf-text-muted);font-size:13px;margin-top:12px;}
+.todo-bar{background:#fff;border-top:1px solid var(--sf-border);padding:10px 16px;position:fixed;bottom:0;left:0;right:0;font-size:12px;color:var(--sf-text-muted);display:flex;align-items:center;gap:6px;z-index:50;}
+
+/* OPPORTUNITIES LIST */
+.list-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.list-icon{width:32px;height:32px;background:#F99222;border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.list-crown{color:#fff;font-size:16px;}
+.list-title{font-size:18px;font-weight:700;}
+.list-view-select{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.list-view-select span{font-size:16px;font-weight:700;}
+.list-actions{margin-left:auto;display:flex;gap:8px;}
+.btn-primary{background:var(--sf-blue);color:#fff;border:1px solid var(--sf-blue);padding:6px 14px;border-radius:4px;font-size:13px;font-weight:500;}
+.btn-primary:hover{background:var(--sf-blue-dark);}
+.btn-neutral{background:#fff;color:var(--sf-text);border:1px solid var(--sf-border);padding:6px 14px;border-radius:4px;font-size:13px;}
+.btn-neutral:hover{background:#F3F2F1;}
+.list-meta{font-size:12px;color:var(--sf-text-muted);margin-bottom:10px;}
+.list-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.list-search{border:1px solid var(--sf-border);border-radius:4px;padding:5px 10px 5px 28px;font-size:13px;width:200px;position:relative;}
+.list-search-wrap{position:relative;}
+.list-search-wrap .srch-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#706E6B;font-size:12px;}
+.icon-btn{width:30px;height:30px;border:1px solid var(--sf-border);border-radius:4px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--sf-text-muted);font-size:14px;}
+.icon-btn:hover{background:#F3F2F1;}
+.opp-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--sf-border);border-radius:4px;overflow:hidden;}
+.opp-table th{background:#FAFAF9;border-bottom:1px solid var(--sf-border);padding:8px 12px;text-align:left;font-size:12px;font-weight:700;color:var(--sf-text);white-space:nowrap;cursor:pointer;user-select:none;}
+.opp-table th:hover{background:#F3F2F1;}
+.opp-table td{padding:8px 12px;border-bottom:1px solid var(--sf-border);font-size:13px;vertical-align:middle;}
+.opp-table tr:last-child td{border-bottom:none;}
+.opp-table tr:hover td{background:#F3F2F1;}
+.opp-table .row-num{color:var(--sf-text-muted);width:32px;}
+.opp-table .chk-col{width:28px;}
+.opp-link{color:var(--sf-link);cursor:pointer;font-size:13px;}
+.opp-link:hover{text-decoration:underline;}
+.row-action{color:var(--sf-text-muted);cursor:pointer;font-size:16px;}
+.chk{width:14px;height:14px;cursor:pointer;}
+
+/* OPPORTUNITY DETAIL */
+.detail-breadcrumb{font-size:12px;color:var(--sf-text-muted);margin-bottom:4px;}
+.detail-breadcrumb span{cursor:pointer;}
+.detail-breadcrumb span:hover{text-decoration:underline;color:var(--sf-link);}
+.detail-header-card{background:#fff;border:1px solid var(--sf-border);border-radius:4px;padding:12px 16px;margin-bottom:0;}
+.detail-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.detail-opp-icon{width:32px;height:32px;background:#F99222;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-title-block{flex:1;}
+.detail-obj-label{font-size:11px;color:var(--sf-text-muted);}
+.detail-opp-name{font-size:18px;font-weight:700;}
+.detail-actions{display:flex;gap:6px;margin-left:auto;align-items:center;}
+.btn-follow{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:5px 12px;border-radius:4px;font-size:13px;display:flex;align-items:center;gap:4px;}
+.btn-follow:hover{background:#F3F2F1;}
+.btn-edit{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:5px 12px;border-radius:4px;font-size:13px;font-weight:500;}
+.btn-edit:hover{background:#F3F2F1;}
+.btn-new-note{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:5px 12px;border-radius:4px;font-size:13px;}
+.btn-new-contact{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:5px 12px;border-radius:4px;font-size:13px;}
+.detail-meta-row{display:flex;gap:32px;margin-bottom:10px;}
+.detail-meta-item label{font-size:11px;color:var(--sf-text-muted);display:block;}
+.detail-meta-item span{font-size:13px;}
+.account-research-btn{border:2px solid var(--sf-orange);color:var(--sf-orange);background:transparent;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:500;}
+.account-research-btn:hover{background:#FFF3E0;}
+
+/* STAGE BAR */
+.stage-bar{display:flex;align-items:stretch;background:#fff;border-top:1px solid var(--sf-border);padding:0;overflow:hidden;}
+.stage-item{flex:1;padding:8px 4px;text-align:center;font-size:11px;font-weight:500;position:relative;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--sf-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stage-item::after{content:'';position:absolute;right:-8px;top:0;bottom:0;width:16px;background:inherit;clip-path:polygon(0 0,50% 50%,0 100%);z-index:2;}
+.stage-item.done{background:#04844B;color:#fff;}
+.stage-item.done::after{background:#04844B;}
+.stage-item.current{background:#032D60;color:#fff;}
+.stage-item.current::after{background:#032D60;}
+.stage-item.future{background:#F3F2F1;color:var(--sf-text-muted);}
+.stage-item.future::after{background:#F3F2F1;}
+.stage-check{font-size:12px;}
+.stage-bar-wrap{background:#fff;border:1px solid var(--sf-border);border-top:none;border-radius:0 0 4px 4px;padding:0 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.btn-mark-complete{background:var(--sf-blue);color:#fff;border:1px solid var(--sf-blue);padding:6px 14px;border-radius:4px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;}
+.btn-mark-complete:hover{background:var(--sf-blue-dark);}
+
+/* DETAIL TABS */
+.detail-tabs{display:flex;border-bottom:1px solid var(--sf-border);background:#fff;padding:0 16px;margin-bottom:0;}
+.detail-tab{padding:10px 12px;font-size:13px;color:var(--sf-text-muted);cursor:pointer;border-bottom:2px solid transparent;}
+.detail-tab:hover{color:var(--sf-text);}
+.detail-tab.active{color:var(--sf-blue);border-bottom:2px solid var(--sf-blue);font-weight:500;}
+
+/* DETAIL BODY */
+.detail-body{display:grid;grid-template-columns:1fr 300px;gap:16px;margin-top:16px;}
+.detail-main{}
+.detail-aside{}
+
+/* DETAIL SECTION */
+.detail-section{background:#fff;border:1px solid var(--sf-border);border-radius:4px;padding:12px 16px;margin-bottom:12px;}
+.detail-section-title{font-size:13px;font-weight:700;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.section-toggle{color:var(--sf-text-muted);font-size:10px;}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;}
+.field-item{padding:4px 0;}
+.field-label{font-size:12px;color:var(--sf-text-muted);margin-bottom:1px;}
+.field-value{font-size:13px;display:flex;align-items:center;gap:4px;}
+.field-edit-icon{color:var(--sf-border);font-size:11px;cursor:pointer;margin-left:4px;}
+.field-edit-icon:hover{color:var(--sf-blue);}
+.influencing-empty{color:var(--sf-text-muted);font-size:13px;padding:4px 0;}
+
+/* RELATED PANEL */
+.related-section{background:#fff;border:1px solid var(--sf-border);border-radius:4px;overflow:hidden;}
+.related-title{padding:12px 14px;font-size:14px;font-weight:700;border-bottom:1px solid var(--sf-border);}
+.related-item{border-bottom:1px solid var(--sf-border);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.related-item:hover{background:#F3F2F1;}
+.related-item:last-child{border-bottom:none;}
+.related-item-left{display:flex;align-items:center;gap:8px;}
+.related-icon{width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.ri-orange{background:#E07000;}
+.ri-red{background:#C23934;}
+.ri-green{background:#04844B;}
+.ri-blue{background:#0070D2;}
+.ri-teal{background:#1B7FB5;}
+.ri-purple{background:#74499A;}
+.related-item-name{font-size:13px;font-weight:500;}
+.related-item-count{font-size:13px;color:var(--sf-text-muted);}
+.related-dropdown{width:24px;height:24px;border:1px solid var(--sf-border);border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sf-text-muted);}
+.related-quote-detail{padding:6px 14px 10px 46px;font-size:12px;color:var(--sf-text-muted);}
+.related-quote-num{color:var(--sf-link);font-size:13px;cursor:pointer;}
+.view-all{padding:8px 14px;text-align:center;font-size:12px;color:var(--sf-link);cursor:pointer;border-top:1px solid var(--sf-border);}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:500;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:4px;width:780px;max-width:96vw;position:relative;margin:auto;}
+.modal-header{padding:14px 20px;border-bottom:1px solid var(--sf-border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10;}
+.modal-title{font-size:16px;font-weight:700;}
+.modal-req{font-size:12px;color:var(--sf-text-muted);}
+.modal-close{width:28px;height:28px;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--sf-text-muted);display:flex;align-items:center;justify-content:center;border-radius:4px;}
+.modal-close:hover{background:#F3F2F1;}
+.modal-body{padding:16px 20px;max-height:calc(90vh - 120px);overflow-y:auto;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--sf-border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:#fff;}
+.btn-cancel{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:7px 16px;border-radius:4px;font-size:13px;}
+.btn-cancel:hover{background:#F3F2F1;}
+.btn-save-new{background:#fff;border:1px solid var(--sf-border);color:var(--sf-text);padding:7px 16px;border-radius:4px;font-size:13px;}
+.btn-save-new:hover{background:#F3F2F1;}
+.btn-save{background:var(--sf-blue);color:#fff;border:1px solid var(--sf-blue);padding:7px 16px;border-radius:4px;font-size:13px;font-weight:500;}
+.btn-save:hover{background:var(--sf-blue-dark);}
+
+/* MODAL SECTIONS */
+.modal-section{margin-bottom:20px;}
+.modal-section-title{font-size:13px;font-weight:700;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--sf-border);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-field{display:flex;flex-direction:column;gap:4px;}
+.form-field.full-width{grid-column:1/-1;}
+.form-label{font-size:12px;color:var(--sf-text-muted);font-weight:500;}
+.form-label .req{color:#C23934;}
+.form-input{height:32px;border:1px solid var(--sf-border);border-radius:4px;padding:0 10px;font-size:13px;outline:none;background:#fff;}
+.form-input:focus{border-color:var(--sf-blue);box-shadow:0 0 0 1px var(--sf-blue);}
+.form-input.changed{background:var(--sf-yellow-bg);border-color:#D4A800;}
+.form-select{height:32px;border:1px solid var(--sf-border);border-radius:4px;padding:0 8px;font-size:13px;outline:none;background:#fff;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23706E6B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;}
+.form-select:focus{border-color:var(--sf-blue);box-shadow:0 0 0 1px var(--sf-blue);}
+.form-select.changed{background-color:var(--sf-yellow-bg);border-color:#D4A800;}
+.form-textarea{border:1px solid var(--sf-border);border-radius:4px;padding:6px 10px;font-size:13px;outline:none;resize:vertical;min-height:72px;background:#fff;}
+.form-textarea:focus{border-color:var(--sf-blue);box-shadow:0 0 0 1px var(--sf-blue);}
+.form-search{position:relative;}
+.form-search input{padding-right:28px;}
+.form-search-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#706E6B;font-size:13px;}
+.form-static{font-size:13px;padding:6px 0;color:var(--sf-text);display:flex;align-items:center;gap:6px;}
+.form-static .owner-avatar{width:22px;height:22px;border-radius:50%;background:var(--sf-blue);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+.reset-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--sf-text-muted);cursor:pointer;font-size:13px;}
+.form-field-wrap{position:relative;}
+.form-lookup{position:relative;}
+.form-lookup input{padding-right:28px;}
+
+/* MULTISELECT */
+.multiselect-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:12px;}
+.multiselect-label{font-size:12px;font-weight:700;color:var(--sf-text-muted);margin-bottom:4px;}
+.ms-col-title{font-size:12px;color:var(--sf-text-muted);margin-bottom:4px;}
+.ms-list{border:1px solid var(--sf-border);border-radius:4px;background:#fff;min-height:100px;overflow-y:auto;}
+.ms-item{padding:6px 10px;font-size:13px;cursor:pointer;}
+.ms-item:hover{background:#F3F2F1;}
+.ms-item.selected{background:#0070D2;color:#fff;}
+.ms-arrows{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;}
+.ms-arrow{width:22px;height:22px;border:1px solid var(--sf-border);border-radius:3px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sf-text);}
+.ms-arrow:hover{background:#F3F2F1;}
+
+/* DATE FIELD */
+.form-date{position:relative;}
+.form-date input{padding-right:28px;}
+.cal-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#706E6B;cursor:pointer;font-size:14px;}
+
+/* CHECKBOX */
+.form-checkbox{display:flex;align-items:center;gap:6px;height:32px;}
+.form-checkbox input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--sf-blue);}
+.form-checkbox label{font-size:13px;cursor:pointer;}
+
+/* CHANGED FIELD INDICATOR */
+.changed-wrap{position:relative;}
+.changed-wrap::after{content:'↺';position:absolute;right:6px;top:50%;transform:translateY(-50%);color:var(--sf-text-muted);font-size:12px;cursor:pointer;}
+
+/* DROPDOWN POPUP */
+.dropdown-popup{position:absolute;z-index:600;background:#fff;border:1px solid var(--sf-border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);min-width:200px;}
+.dropdown-option{padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.dropdown-option:hover{background:#F3F2F1;}
+.dropdown-option.selected-opt{font-weight:500;}
+.dropdown-option .chk-mark{color:var(--sf-blue);font-size:13px;width:14px;}
+.dropdown-section-label{padding:6px 12px;font-size:11px;font-weight:700;color:var(--sf-text-muted);background:#F3F2F1;border-bottom:1px solid var(--sf-border);}
+
+/* TOAST */
+.toast-container{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:#2E7D32;color:#fff;padding:10px 16px;border-radius:4px;font-size:13px;display:flex;align-items:center;gap:8px;pointer-events:all;min-width:320px;max-width:500px;box-shadow:0 4px 8px rgba(0,0,0,.2);animation:slideDown 0.3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+.toast-close{margin-left:auto;background:transparent;border:none;color:#fff;cursor:pointer;font-size:16px;line-height:1;}
+.toast-link{color:#fff;text-decoration:underline;font-weight:500;}
+
+/* QUOTE REF IN FIELD */
+.lookup-chip{display:flex;align-items:center;gap:6px;background:#F3F2F1;border:1px solid var(--sf-border);border-radius:4px;padding:4px 8px;font-size:13px;height:32px;}
+.lookup-chip-icon{width:16px;height:16px;background:#E07000;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;flex-shrink:0;}
+.lookup-chip-text{flex:1;color:var(--sf-text);}
+.lookup-chip-x{color:var(--sf-text-muted);cursor:pointer;font-size:13px;background:transparent;border:none;padding:0;}
+.lookup-chip-x:hover{color:var(--sf-red);}
+
+/* RECENT DROPDOWN */
+.recent-dropdown{position:absolute;z-index:700;background:#fff;border:1px solid var(--sf-border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.15);width:100%;top:34px;left:0;}
+.recent-dropdown-title{padding:6px 10px;font-size:11px;font-weight:700;color:var(--sf-text-muted);border-bottom:1px solid var(--sf-border);}
+.recent-item{padding:7px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.recent-item:hover{background:#F3F2F1;}
+.recent-item-icon{width:18px;height:18px;background:#E07000;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;flex-shrink:0;}
+.new-opportunity-item{padding:7px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--sf-blue);border-top:1px solid var(--sf-border);}
+.new-opportunity-item:hover{background:#F3F2F1;}
+
+/* NEW QUOTE DROPDOWN */
+.nq-dropdown-item{padding:7px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--sf-blue);}
+.nq-dropdown-item:hover{background:#F3F2F1;}
+
+/* PERSON ICON BUTTON */
+.person-icon-btn{width:20px;height:20px;border:none;background:transparent;cursor:pointer;color:var(--sf-text-muted);font-size:14px;padding:0;}
+
+/* PROBABILITY CHANGED */
+.prob-changed{background:var(--sf-yellow-bg);border-color:#D4A800;}
+
+/* OWNER ROW */
+.owner-field{display:flex;align-items:center;gap:6px;height:32px;}
+
+/* STAGE BAR SIMPLIFIED */
+.stage-progress{display:flex;overflow:hidden;border-radius:4px 4px 0 0;}
+.sp-item{flex:1;padding:7px 2px;text-align:center;font-size:11px;position:relative;display:flex;align-items:center;justify-content:center;gap:3px;}
+.sp-item:not(:last-child)::after{content:'';position:absolute;right:-8px;top:0;bottom:0;width:0;height:0;border-top:18px solid transparent;border-bottom:18px solid transparent;z-index:3;}
+.sp-done{background:#04844B;color:#fff;}
+.sp-done::after{border-left:9px solid #04844B;}
+.sp-current{background:#032D60;color:#fff;font-weight:600;}
+.sp-current::after{border-left:9px solid #032D60;}
+.sp-future{background:#E0DFDE;color:#706E6B;}
+.sp-future::after{border-left:9px solid #E0DFDE;}
+.sp-check{font-size:10px;}
+
+/* SVG CHART */
+.chart-svg{width:100%;height:100%;}
+.chart-axis{stroke:#E0DFDE;stroke-width:1;}
+.chart-label{font-size:11px;fill:#706E6B;font-family:-apple-system,sans-serif;}
+.chart-line-goal{stroke:#04844B;stroke-width:2;fill:none;}
+.chart-line-closed{stroke:#E07000;stroke-width:2;fill:none;}
+
+/* RESPONSIVE fix for stage bar */
+.stage-bar-outer{background:#fff;border:1px solid var(--sf-border);border-top:0;margin-bottom:0;}
+.stage-bar-inner{display:flex;overflow:hidden;}
+
+/* DETAIL CARD FULL */
+.detail-card-full{background:#fff;border:1px solid var(--sf-border);border-radius:4px;margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<!-- DEV BANNER -->
+<div class="dev-banner">
+  <span class="dev-banner-icon">&lt;/&gt;</span>
+  <span>Developer Edition</span>
+</div>
+
+<!-- HEADER -->
+<div class="sf-header" style="position:relative;">
+  <svg class="sf-logo" viewBox="0 0 52 36" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="goHome()">
+    <ellipse cx="26" cy="18" rx="22" ry="14" fill="#00A1E0"/>
+    <path d="M18 12 Q20 6 26 8 Q30 4 35 8 Q40 7 40 14 Q44 16 42 22 Q40 26 35 25 L18 25 Q12 24 12 18 Q12 12 18 12Z" fill="#fff"/>
+    <path d="M19 18 L22 21 L28 15" stroke="#0070D2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="sf-search-wrap">
+    <span class="sf-search-icon">&#128269;</span>
+    <input type="text" placeholder="Search...">
+  </div>
+  <button class="overdue-btn" onclick="alert('Overdue Opportunities')">Overdue Opps</button>
+  <div class="sf-header-icons">
+    <div class="hdr-icon" title="Favorites">&#9733;</div>
+    <div class="hdr-icon" title="Menu">&#9660;</div>
+    <div class="hdr-icon" title="New">&#43;</div>
+    <div class="hdr-icon" title="Help">&#63;</div>
+    <div class="hdr-icon" title="Setup">&#9881;</div>
+    <div class="hdr-icon" title="Notifications">&#128276;</div>
+    <div class="hdr-avatar" title="Profile">se</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="sf-nav">
+  <div class="nav-app-name">Sales</div>
+  <div class="nav-item active" id="nav-home" onclick="goHome()">Home</div>
+  <div class="nav-item" id="nav-leads" onclick="">Leads <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-dash" onclick="">Dashboards <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-cases" onclick="">Cases <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-tasks" onclick="">Tasks <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-opps" onclick="goOpportunities()">Opportunities <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-chatter" onclick="">Chatter</div>
+  <div class="nav-item" id="nav-contacts" onclick="">Contacts <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-campaigns" onclick="">Campaigns <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-reports" onclick="">Reports <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-accounts" onclick="">Accounts <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-people" onclick="">People <span class="nav-arrow">&#9660;</span></div>
+  <div class="nav-item" id="nav-more" onclick="">More <span class="nav-arrow">&#9660;</span></div>
+</div>
+
+<!-- ===== SCREEN: HOME ===== -->
+<div id="screen-home" class="screen active">
+  <div class="page-body" style="padding-bottom:50px;">
+    <div class="home-grid">
+      <div class="home-main">
+        <!-- Quarterly Performance Card -->
+        <div class="card qp-card">
+          <div class="qp-header">
+            <span class="qp-title">Quarterly Performance</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="qp-meta">As of Today 3:08 pm</span>
+              <div class="hdr-icon">&#8635;</div>
+            </div>
+          </div>
+          <div class="qp-stats">
+            <div class="qp-stat"><label>CLOSED</label><span>$0</span></div>
+            <div class="qp-stat"><label>OPEN (&gt;70%)</label><span>$0</span></div>
+            <div class="qp-stat"><label>GOAL</label><span class="goal-val">$999,999 &#9998;</span></div>
+          </div>
+          <div class="qp-chart">
+            <svg class="chart-svg" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet">
+              <!-- Grid lines -->
+              <line x1="60" y1="20" x2="680" y2="20" stroke="#E0DFDE" stroke-width="0.5"/>
+              <line x1="60" y1="56" x2="680" y2="56" stroke="#E0DFDE" stroke-width="0.5"/>
+              <line x1="60" y1="92" x2="680" y2="92" stroke="#E0DFDE" stroke-width="0.5"/>
+              <line x1="60" y1="128" x2="680" y2="128" stroke="#E0DFDE" stroke-width="0.5"/>
+              <line x1="60" y1="164" x2="680" y2="164" stroke="#E0DFDE" stroke-width="0.5"/>
+              <line x1="60" y1="180" x2="680" y2="180" stroke="#DDDBDA" stroke-width="1"/>
+              <!-- Y axis labels -->
+              <text x="52" y="24" text-anchor="end" class="chart-label">1M</text>
+              <text x="52" y="60" text-anchor="end" class="chart-label">800k</text>
+              <text x="52" y="96" text-anchor="end" class="chart-label">600k</text>
+              <text x="52" y="132" text-anchor="end" class="chart-label">400k</text>
+              <text x="52" y="168" text-anchor="end" class="chart-label">200k</text>
+              <text x="52" y="184" text-anchor="end" class="chart-label">0</text>
+              <!-- X axis labels -->
+              <text x="155" y="196" text-anchor="middle" class="chart-label">May</text>
+              <text x="325" y="196" text-anchor="middle" class="chart-label">Jun</text>
+              <text x="495" y="196" text-anchor="middle" class="chart-label">Jul</text>
+              <text x="655" y="196" text-anchor="middle" class="chart-label">Aug</text>
+              <!-- Goal line at $999,999 ≈ top -->
+              <line x1="60" y1="21" x2="680" y2="21" stroke="#04844B" stroke-width="2"/>
+              <!-- Empty message -->
+              <text x="370" y="105" text-anchor="middle" class="chart-label" font-size="13">Add the opportunities you're working on, then come back here to view your performance.</text>
+            </svg>
+          </div>
+          <div class="qp-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#E07000;"></div>Closed</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#04844B;"></div>Goal</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0070D2;"></div>Closed + Open (&gt;70%)</div>
+          </div>
+        </div>
+        <!-- Today's panels -->
+        <div class="panel-2col">
+          <div class="mini-card">
+            <div class="mini-card-title">Today's Events</div>
+            <div class="mini-card-empty" style="padding:30px 0;text-align:center;">
+              <svg width="80" height="60" viewBox="0 0 80 60" fill="none"><circle cx="40" cy="30" r="28" fill="#E0F0FF" opacity=".5"/><circle cx="40" cy="20" r="10" fill="#B0D8F0"/><rect x="20" y="35" width="40" height="18" rx="4" fill="#B0D8F0"/></svg>
+            </div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">Today's Tasks</div>
+            <div class="mini-card-empty" style="padding:30px 0;text-align:center;">
+              <svg width="80" height="60" viewBox="0 0 80 60" fill="none"><circle cx="40" cy="30" r="28" fill="#E0F0FF" opacity=".5"/><rect x="22" y="18" width="36" height="8" rx="2" fill="#B0D8F0"/><rect x="22" y="30" width="28" height="8" rx="2" fill="#B0D8F0"/><rect x="22" y="42" width="20" height="8" rx="2" fill="#B0D8F0"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="home-aside">
+        <div class="assistant-card">
+          <div class="assistant-title">Assistant</div>
+          <svg width="160" height="100" viewBox="0 0 160 100" fill="none" style="display:block;margin:0 auto;"><rect width="160" height="100" fill="#E8F4FF" rx="6"/><path d="M30 70 Q40 40 60 55 Q80 30 100 50 Q120 35 140 45" stroke="#90C8F0" stroke-width="2" fill="none"/><circle cx="70" cy="35" r="8" fill="#B0D8F0"/><path d="M20 80 Q40 70 60 78 Q80 85 100 75 Q120 68 145 76" stroke="#B0D8F0" stroke-width="1.5" fill="none"/></svg>
+          <div class="assistant-empty">Nothing needs your attention right now. Check back later.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="todo-bar">&#9776; To Do List</div>
+</div>
+
+<!-- ===== SCREEN: OPPORTUNITIES ===== -->
+<div id="screen-opportunities" class="screen">
+  <div class="page-body" style="padding-bottom:50px;">
+    <div class="list-header">
+      <div class="list-icon"><span class="list-crown">&#9812;</span></div>
+      <div>
+        <div style="font-size:11px;color:var(--sf-text-muted);">Opportunities</div>
+        <div class="list-view-select">
+          <span>Recently Viewed</span>
+          <span style="font-size:14px;color:var(--sf-text-muted);margin-left:2px;">&#9660;</span>
+          <div style="width:22px;height:22px;border:1px solid var(--sf-border);border-radius:3px;display:flex;align-items:center;justify-content:center;margin-left:4px;cursor:pointer;font-size:11px;color:var(--sf-text-muted);">i</div>
+        </div>
+      </div>
+      <div class="list-actions">
+        <button class="btn-neutral">Assign Label</button>
+        <button class="btn-primary">New</button>
+      </div>
+    </div>
+    <div class="list-meta">21 items &bull; Updated a few seconds ago</div>
+    <div class="list-toolbar">
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <div class="list-search-wrap">
+          <span class="srch-icon">&#128269;</span>
+          <input class="list-search" type="text" placeholder="Search this list...">
+        </div>
+        <div class="icon-btn" title="Settings">&#9881;</div>
+        <div class="icon-btn" title="List view">&#9776;</div>
+        <div class="icon-btn" title="Board view">&#8942;</div>
+        <div class="icon-btn" title="Refresh">&#8635;</div>
+        <div class="icon-btn" title="Edit columns">&#9998;</div>
+        <div class="icon-btn" title="Delete">&#128465;</div>
+        <div class="icon-btn" title="Filter">&#9663;</div>
+      </div>
+    </div>
+    <table class="opp-table">
+      <thead>
+        <tr>
+          <th class="chk-col"><input type="checkbox" class="chk"></th>
+          <th class="row-num"></th>
+          <th>Opportunity Name <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th>Account Name <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th>Account Site <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th>Stage <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th>Close Date <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th>Opportunity Own... <span style="font-size:10px;">&#9650;&#9660;</span></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="opp-tbody">
+      </tbody>
+    </table>
+  </div>
+  <div class="todo-bar">&#9776; To Do List</div>
+</div>
+
+<!-- ===== SCREEN: DETAIL ===== -->
+<div id="screen-detail" class="screen">
+  <div class="page-body" style="padding-bottom:50px;">
+    <div class="detail-breadcrumb" style="margin-bottom:6px;">
+      <span onclick="goOpportunities()">Opportunity</span>
+    </div>
+    <!-- Header Card -->
+    <div class="detail-card-full">
+      <div style="padding:10px 16px;display:flex;align-items:center;gap:10px;">
+        <div class="detail-opp-icon">&#9812;</div>
+        <div class="detail-title-block">
+          <div class="detail-obj-label">Opportunity</div>
+          <div class="detail-opp-name">ACME_100</div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-follow">&#43; Follow</button>
+          <button class="btn-edit" onclick="openEditModal()">Edit</button>
+          <button class="btn-new-note">New Note</button>
+          <button class="btn-new-contact">New Contact</button>
+          <button class="btn-neutral" style="padding:5px 8px;">&#9660;</button>
+        </div>
+      </div>
+      <div style="padding:0 16px 10px;display:flex;align-items:center;gap:32px;">
+        <div class="detail-meta-item"><label>Account Name</label><span>&nbsp;</span></div>
+        <div class="detail-meta-item"><label>Close Date</label><span>15/08/2023</span></div>
+        <div class="detail-meta-item"><label>Amount</label><span>$100.00</span></div>
+        <div class="detail-meta-item"><label>Opportunity Owner</label><span><a href="#" onclick="return false;" style="color:var(--sf-link);">Sam Jones</a> &#128100;</span></div>
+        <div style="margin-left:auto;"><button class="account-research-btn">Account Research</button></div>
+      </div>
+      <!-- Stage Bar -->
+      <div id="stage-bar-container" style="border-top:1px solid var(--sf-border);">
+        <!-- rendered by JS -->
+      </div>
+      <div style="padding:8px 16px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--sf-border);">
+        <div></div>
+        <button class="btn-mark-complete">&#10003; Mark Stage as Complete</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="detail-card-full" style="margin-bottom:0;">
+      <div class="detail-tabs">
+        <div class="detail-tab active">Details</div>
+        <div class="detail-tab">Activity</div>
+        <div class="detail-tab">Chatter</div>
+      </div>
+    </div>
+    <!-- Body -->
+    <div class="detail-body">
+      <div class="detail-main">
+        <!-- Influencing -->
+        <div class="detail-section">
+          <div class="field-item">
+            <div class="field-label">Influencing Factors <span class="field-edit-icon">&#9998;</span></div>
+            <div class="field-value influencing-empty">&nbsp;</div>
+          </div>
+        </div>
+        <!-- Opportunity Info -->
+        <div class="detail-section">
+          <div class="detail-section-title"><span class="section-toggle">&#9660;</span> Opportunity Information</div>
+          <div class="field-grid">
+            <div class="field-item"><div class="field-label">Opportunity Owner</div><div class="field-value"><a href="#" onclick="return false;">Sam Jones</a> <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Amount</div><div class="field-value">$100.00 <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Opportunity Name</div><div class="field-value">ACME_100 <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Close Date</div><div class="field-value">15/08/2023 <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Account Name</div><div class="field-value"><span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Stage</div><div id="detail-stage-val" class="field-value">Qualification <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Type</div><div class="field-value">New Customer <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Probability (%)</div><div id="detail-prob-val" class="field-value">10% <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Lead Source</div><div class="field-value"><span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Main Competitor(s)</div><div class="field-value">ACME Inc. <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Next Step</div><div class="field-value"><span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Tracking Number</div><div class="field-value"><span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Order Number</div><div class="field-value">1234 <span class="field-edit-icon">&#9998;</span></div></div>
+            <div class="field-item"><div class="field-label">Last Activity</div><div class="field-value">07/08/2023</div></div>
+            <div class="field-item"><div class="field-label">Last_modified</div><div class="field-value"><span class="field-edit-icon">&#9998;</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-aside">
+        <div class="related-section">
+          <div class="related-title">Related</div>
+          <div class="related-item" id="related-quotes-row">
+            <div class="related-item-left">
+              <div class="related-icon ri-orange" style="color:#fff;font-size:11px;">&#128722;</div>
+              <span class="related-item-name">Quotes</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span id="related-quotes-count" class="related-item-count">(0)</span>
+              <div id="related-quotes-dot" style="display:none;width:10px;height:10px;border-radius:50%;background:#C23934;"></div>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div id="related-quotes-detail" style="display:none;"></div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon" style="background:#CC4000;color:#fff;font-size:11px;">&#128722;</div>
+              <span class="related-item-name">Products</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon ri-orange" style="color:#fff;font-size:11px;">&#128722;</div>
+              <span class="related-item-name">Quote Documents</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon ri-green" style="color:#fff;font-size:11px;">&#128441;</div>
+              <span class="related-item-name">Contracts</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon ri-green" style="color:#fff;font-size:11px;">&#128441;</div>
+              <span class="related-item-name">Renewal Contracts</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon ri-blue" style="color:#fff;font-size:11px;">&#128100;</div>
+              <span class="related-item-name">Contact Roles</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+          <div class="related-item">
+            <div class="related-item-left">
+              <div class="related-icon ri-teal" style="color:#fff;font-size:11px;">&#128101;</div>
+              <span class="related-item-name">Partners</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="related-item-count">(0)</span>
+              <div class="related-dropdown">&#9660;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="todo-bar">&#9776; To Do List</div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Edit ACME_100</span>
+      <span class="modal-req">* = Required Information</span>
+      <button class="modal-close" onclick="closeEditModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="edit-modal-body">
+
+      <!-- INFLUENCING FACTORS -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--sf-text-muted);margin-bottom:6px;">Influencing Factors</div>
+        <div class="multiselect-wrap">
+          <div>
+            <div class="ms-col-title">Available</div>
+            <div class="ms-list" id="ms-available" style="min-height:90px;">
+              <div class="ms-item" onclick="msSelect(this,'available')">Smart Solutions</div>
+              <div class="ms-item" onclick="msSelect(this,'available')">Use case repo</div>
+              <div class="ms-item" onclick="msSelect(this,'available')">Advanced use cases</div>
+              <div class="ms-item" onclick="msSelect(this,'available')">None</div>
+            </div>
+          </div>
+          <div class="ms-arrows">
+            <button class="ms-arrow" onclick="msMoveRight()" title="Move right">&#9654;</button>
+            <button class="ms-arrow" onclick="msMoveLeft()" title="Move left">&#9664;</button>
+          </div>
+          <div>
+            <div class="ms-col-title">Chosen</div>
+            <div class="ms-list" id="ms-chosen" style="min-height:90px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPPORTUNITY INFORMATION -->
+      <div class="modal-section">
+        <div class="modal-section-title">Opportunity Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Opportunity Owner</div>
+            <div class="owner-field">
+              <div class="form-static">
+                <div class="owner-avatar" style="background:var(--sf-blue);color:#fff;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">se</div>
+                <span>Sam Jones</span>
+              </div>
+              <button class="person-icon-btn" title="Change owner">&#128100;</button>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Amount</div>
+            <input class="form-input" type="text" value="US$100.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Opportunity Name</div>
+            <input class="form-input" type="text" value="ACME_100">
+          </div>
+          <div class="form-field">
+            <div class="form-label"><span class="req">*</span> Close Date</div>
+            <div class="form-date form-field-wrap">
+              <input class="form-input" type="text" value="15/08/2023" style="padding-right:28px;">
+              <span class="cal-icon">&#128197;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Account Name</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search Accounts..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+          <div class="form-field" style="position:relative;">
+            <div class="form-label"><span class="req">*</span> Stage</div>
+            <div class="changed-wrap" id="stage-field-wrap" style="position:relative;">
+              <select class="form-select" id="edit-stage" onchange="onStageChange(this.value)">
+                <option value="Prospecting">Prospecting</option>
+                <option value="Qualification" selected>Qualification</option>
+                <option value="Needs Analysis">Needs Analysis</option>
+                <option value="Value Proposition">Value Proposition</option>
+                <option value="Id. Decision Makers">Id. Decision Makers</option>
+                <option value="Perception Analysis">Perception Analysis</option>
+                <option value="Proposal/Price Quote">Proposal/Price Quote</option>
+                <option value="Negotiation/Review">Negotiation/Review</option>
+                <option value="Closed Won">Closed Won</option>
+                <option value="Closed Lost">Closed Lost</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Type</div>
+            <select class="form-select">
+              <option>New Customer</option>
+              <option>Existing Customer - Upgrade</option>
+              <option>Existing Customer - Replacement</option>
+              <option>Existing Customer - Downgrade</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Probability (%)</div>
+            <input class="form-input" type="text" id="edit-probability" value="10%">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Lead Source</div>
+            <select class="form-select"><option>--None--</option><option>Web</option><option>Phone Inquiry</option><option>Partner Referral</option><option>Purchased List</option><option>Other</option></select>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Main Competitor(s)</div>
+            <input class="form-input" type="text" value="ACME Inc.">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Next Step</div>
+            <input class="form-input" type="text" value="">
+          </div>
+          <div class="form-field">
+            <div class="form-label">Tracking Number</div>
+            <input class="form-input" type="text" value="">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Order Number</div>
+            <input class="form-input" type="text" value="1234">
+          </div>
+          <div class="form-field">
+            <div class="form-label">Last Activity</div>
+            <div class="form-static" style="color:var(--sf-text-muted);">07/08/2023 <span style="font-size:11px;font-style:italic;">This field is calculated upon save</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Last_modified</div>
+            <div class="form-date form-field-wrap">
+              <input class="form-input" type="text" placeholder="" style="padding-right:28px;">
+              <span class="cal-icon">&#128197;</span>
+            </div>
+          </div>
+          <div class="form-field"></div>
+        </div>
+      </div>
+
+      <!-- MEDDPICC FIELDS -->
+      <div class="modal-section">
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Metrics</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Economic_Buyer</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Decision Criteria</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Decision Process</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Paper Process</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Identified Pain</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Champion/Coach</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Metrics Score</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Economic Buyer Score</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Decision Criteria Score</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Decision Process Score</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Paper Process Score</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Identified Pain Score</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Champion/Coach Score</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Competition Score</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">MEDDPICC Score</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Paper Process Score</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">meddpic_Com-petition</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">meddpic_Paper Process</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"></div>
+        </div>
+      </div>
+
+      <!-- QUALIFICATION SECTION -->
+      <div class="modal-section">
+        <div class="modal-section-title">Qualification</div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Budget Range</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Technical Fit</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Budget Status</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Key Requirements</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Decision Timelines</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Integration Details</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Buying Process</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Pilot Needed</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Main Competitor(s)</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Technical Specialist</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Economic Buyer</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field full-width">
+            <div class="form-label">Description</div>
+            <textarea class="form-textarea" rows="4">Here we explaining more about opportunity
+Company name :
+Business vertical :
+Opportunity action :</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SALESFORCE CPQ INFORMATION -->
+      <div class="modal-section">
+        <div class="modal-section-title">Salesforce CPQ Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Primary Quote &#9432;</div>
+            <div id="primary-quote-field" style="position:relative;">
+              <div id="pq-search-wrap" class="form-search form-field-wrap">
+                <input class="form-input" id="pq-input" type="text" placeholder="Search Quotes..." style="padding-right:28px;" onclick="togglePQDropdown()" readonly>
+                <span class="form-search-icon">&#128269;</span>
+                <div id="pq-dropdown" style="display:none;position:absolute;top:34px;left:0;width:100%;background:#fff;border:1px solid var(--sf-border);border-radius:4px;z-index:800;box-shadow:0 4px 10px rgba(0,0,0,.15);">
+                  <div class="nq-dropdown-item" onclick="openNewQuote()">&#43; New Quote</div>
+                </div>
+              </div>
+              <div id="pq-chip" style="display:none;"></div>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Contracted &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="chk-contracted"><label for="chk-contracted"></label></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Create Contracted Prices &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="chk-ccp"><label for="chk-ccp"></label></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Renewal &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="chk-renewal"><label for="chk-renewal"></label></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Renewed Contract &#9432;</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search Contracts..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Amended Contract &#9432;</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search Contracts..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:8px;">
+          <div class="form-field">
+            <div class="form-label">Created By</div>
+            <div class="form-static" style="color:var(--sf-text-muted);">
+              <div style="width:20px;height:20px;border-radius:50%;background:var(--sf-blue);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">se</div>
+              Sam Jones, 04/08/2023, 17:37
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Last Modified By</div>
+            <div class="form-static" style="color:var(--sf-text-muted);">
+              <div style="width:20px;height:20px;border-radius:50%;background:var(--sf-blue);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;">se</div>
+              Sam Jones, 04/08/2023, 17:37
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-save-new">Save &amp; New</button>
+      <button class="btn-save" onclick="saveOpportunity()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW QUOTE MODAL ===== -->
+<div class="modal-overlay" id="quote-modal">
+  <div class="modal" style="width:800px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">New Quote</span>
+      <span class="modal-req">* = Required Information</span>
+      <button class="modal-close" onclick="closeQuoteModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section">
+        <div class="modal-section-title">Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Quote Number</div>
+            <div class="form-static" style="color:var(--sf-text-muted);font-size:13px;">&nbsp;</div>
+          </div>
+          <div class="form-field" style="position:relative;">
+            <div class="form-label">Opportunity &#9432;</div>
+            <div id="nq-opp-field" style="position:relative;">
+              <div id="nq-opp-search" class="form-search form-field-wrap">
+                <input class="form-input" id="nq-opp-input" type="text" placeholder="Search Opportunities..." style="padding-right:28px;" onclick="toggleOppDropdown()" autocomplete="off">
+                <span class="form-search-icon">&#128269;</span>
+                <div id="nq-opp-dropdown" style="display:none;position:absolute;top:34px;left:0;width:100%;background:#fff;border:1px solid var(--sf-border);border-radius:4px;z-index:900;box-shadow:0 4px 10px rgba(0,0,0,.15);">
+                  <div class="recent-dropdown-title">Recent Items</div>
+                  <div class="recent-item" onclick="selectOpp('Whatfix demo do not touch','Whatfix')"><div class="recent-item-icon">&#9812;</div>Whatfix demo do not touch<span style="margin-left:6px;font-size:11px;color:var(--sf-text-muted);">Whatfix</span></div>
+                  <div class="recent-item" onclick="selectOpp('ACME_100','')"><div class="recent-item-icon">&#9812;</div>ACME_100</div>
+                  <div class="recent-item" onclick="selectOpp('RideWise Rentals','Whatfix')"><div class="recent-item-icon">&#9812;</div>RideWise Rentals<span style="margin-left:6px;font-size:11px;color:var(--sf-text-muted);">Whatfix</span></div>
+                  <div class="recent-item" onclick="selectOpp('Gen Pro - Seek','')"><div class="recent-item-icon">&#9812;</div>Gen Pro - Seek</div>
+                  <div class="recent-item" onclick="selectOpp('Whatfix Mudit','')"><div class="recent-item-icon">&#9812;</div>Whatfix Mudit</div>
+                  <div class="new-opportunity-item">&#43; New Opportunity</div>
+                </div>
+              </div>
+              <div id="nq-opp-chip" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Primary &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="nq-primary"><label for="nq-primary"></label></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Account &#9432;</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search Accounts..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Sales Rep &#9432;</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search People..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Type &#9432;</div>
+            <select class="form-select"><option>Quote</option><option>Contract</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Primary Contact &#9432;</div>
+            <div class="form-search form-field-wrap">
+              <input class="form-input" type="text" placeholder="Search Contacts..." style="padding-right:28px;">
+              <span class="form-search-icon">&#128269;</span>
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Status &#9432;</div>
+            <select class="form-select"><option>Draft</option><option>In Review</option><option>Approved</option><option>Rejected</option><option>Presented</option><option>Accepted</option><option>Denied</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Contract Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Master Contract &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Contracts..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Payment Terms &#9432;</div>
+            <select class="form-select"><option>Net 30</option><option>Net 60</option><option>Net 90</option><option>Due on Receipt</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Master Evergreen Contract &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Contracts..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Delivery Method &#9432;</div>
+            <select class="form-select"><option>--None--</option><option>Email</option><option>Mail</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Start Date &#9432;</div>
+            <div class="form-date form-field-wrap"><input class="form-input" type="text" placeholder="" style="padding-right:28px;"><span class="cal-icon">&#128197;</span></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Expires On &#9432;</div>
+            <div class="form-date form-field-wrap"><input class="form-input" type="text" value="18/06/2026" style="padding-right:28px;"><span class="cal-icon">&#128197;</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Subscription Term &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+          <div class="form-field">
+            <div class="form-label">Markup (%) &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Discount Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Additional Disc.(%) &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+          <div class="form-field">
+            <div class="form-label">Price Book &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Price Books..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Target Customer Amount &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+          <div class="form-field"></div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Partner Information</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Partner &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Accounts..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Distributor &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Accounts..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Partner Discount &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+          <div class="form-field">
+            <div class="form-label">Distributor Discount &#9432;</div>
+            <input class="form-input" type="text" value="">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Address Information</div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To Name &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Ship To Name &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To Street &#9432;</div><textarea class="form-textarea" rows="2"></textarea></div>
+          <div class="form-field"><div class="form-label">Ship To Street &#9432;</div><textarea class="form-textarea" rows="2"></textarea></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To City &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Ship To City &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To State &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Ship To State &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To Postal Code &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Ship To Postal Code &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Bill To Country &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Ship To Country &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Quote Options</div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Group Line Items &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="nq-gli"><label for="nq-gli"></label></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">Print Line Items &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="nq-pli" checked><label for="nq-pli"></label></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Watermark Shown &#9432;</div>
+            <div class="form-checkbox"><input type="checkbox" id="nq-wm"><label for="nq-wm"></label></div>
+          </div>
+          <div class="form-field"></div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Additional Text</div>
+        <div class="form-row">
+          <div class="form-field full-width">
+            <div class="form-label">Introduction &#9432; <span style="cursor:help;border:1px solid var(--sf-text-muted);border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">i</span></div>
+            <textarea class="form-textarea" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field full-width">
+            <div class="form-label">Notes &#9432;</div>
+            <textarea class="form-textarea" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Source &#9432;</div>
+            <div class="form-search form-field-wrap"><input class="form-input" type="text" placeholder="Search Quotes..." style="padding-right:28px;"><span class="form-search-icon">&#128269;</span></div>
+          </div>
+          <div class="form-field">
+            <div class="form-label">End Date &#9432;</div>
+            <div class="form-date form-field-wrap"><input class="form-input" type="text" placeholder="" style="padding-right:28px;"><span class="cal-icon">&#128197;</span></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <div class="form-label">Generate Contracted Price &#9432;</div>
+            <select class="form-select"><option>--None--</option></select>
+          </div>
+          <div class="form-field"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Pricebook ID &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"><div class="form-label">Quote Process Id &#9432;</div><input class="form-input" type="text" value=""></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><div class="form-label">Quote Template Id &#9432;</div><input class="form-input" type="text" value=""></div>
+          <div class="form-field"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeQuoteModal()">Cancel</button>
+      <button class="btn-save" onclick="saveQuote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===== STATE =====
+var state = {
+  screen: 'home',
+  stage: 'Qualification',
+  probability: '10%',
+  stageChanged: false,
+  quoteCreated: false,
+  oppSaved: false,
+  pqDropdownOpen: false,
+  oppDropdownOpen: false,
+  selectedOpp: null
+};
+
+var stageProbMap = {
+  'Prospecting': '10%',
+  'Qualification': '10%',
+  'Needs Analysis': '20%',
+  'Value Proposition': '50%',
+  'Id. Decision Makers': '60%',
+  'Perception Analysis': '70%',
+  'Proposal/Price Quote': '75%',
+  'Negotiation/Review': '90%',
+  'Closed Won': '100%',
+  'Closed Lost': '0%'
+};
+
+var opportunities = [
+  {name:'RideWise Rentals', account:'Whatfix', site:'', stage:'Negotiation/Review', close:'29/01/2026', owner:'se'},
+  {name:'Whatfix demo do not touch', account:'Whatfix', site:'', stage:'Closed Won', close:'11/12/2025', owner:'se'},
+  {name:'Gen Pro - Seek', account:'', site:'', stage:'Qualification', close:'21/09/2024', owner:'se'},
+  {name:'Whatfix Mudit', account:'', site:'', stage:'Qualification', close:'05/03/2026', owner:'se'},
+  {name:'New Opp', account:'Apple', site:'', stage:'Qualification', close:'23/04/2026', owner:'se'},
+  {name:'ACME_100', account:'', site:'', stage:'Qualification', close:'15/08/2023', owner:'se'},
+  {name:'Whatfix-New Opp', account:'', site:'', stage:'Proposal/Price Quote', close:'12/03/2026', owner:'se'},
+  {name:'ACME $10000', account:'', site:'', stage:'Qualification', close:'13/09/2024', owner:'se'},
+  {name:'Observe AI Interaction Sample', account:'', site:'', stage:'Qualification', close:'24/01/2026', owner:'se'},
+  {name:'Whatfix', account:'', site:'', stage:'Proposal/Price Quote', close:'11/03/2026', owner:'se'},
+  {name:'Comp-', account:'Highland Manufacturing Ltd.', site:'', stage:'Prospecting', close:'31/12/2025', owner:'se'},
+  {name:'Whatfix', account:'Whatfix', site:'', stage:'Id. Decision Makers', close:'08/10/2025', owner:'se'},
+  {name:'Aplus Transition-', account:'', site:'', stage:'Closed Won', close:'18/03/2026', owner:'se'},
+  {name:'ABC 10,000', account:'', site:'', stage:'Qualification', close:'12/12/2025', owner:'se'},
+  {name:'ABC', account:'', site:'', stage:'Perception Analysis', close:'09/10/2025', owner:'se'},
+  {name:'Whatfix-Enterprise', account:'', site:'', stage:'Qualification', close:'15/01/2026', owner:'se'},
+  {name:'SFDC Test', account:'', site:'', stage:'Qualification', close:'30/06/2024', owner:'se'},
+  {name:'Demo Opp', account:'Whatfix', site:'', stage:'Needs Analysis', close:'28/02/2026', owner:'se'},
+  {name:'Pilot Deal', account:'', site:'', stage:'Value Proposition', close:'15/04/2026', owner:'se'},
+  {name:'Renewal 2026', account:'Whatfix', site:'', stage:'Qualification', close:'31/12/2026', owner:'se'},
+  {name:'Sample Opp', account:'', site:'', stage:'Qualification', close:'01/03/2026', owner:'se'}
+];
+
+// ===== NAVIGATION =====
+function setScreen(name) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  state.screen = name;
+  if(name==='home') document.getElementById('nav-home').classList.add('active');
+  if(name==='opportunities') document.getElementById('nav-opps').classList.add('active');
+  if(name==='detail') document.getElementById('nav-opps').classList.add('active');
+}
+
+function goHome(){setScreen('home');}
+function goOpportunities(){renderOppTable();setScreen('opportunities');}
+function goDetail(){renderStageBar();setScreen('detail');}
+
+// ===== OPPORTUNITIES TABLE =====
+function renderOppTable(){
+  var tbody = document.getElementById('opp-tbody');
+  tbody.innerHTML = '';
+  opportunities.forEach(function(o,i){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="chk-col"><input type="checkbox" class="chk"></td>'+
+      '<td class="row-num">'+(i+1)+'</td>'+
+      '<td><a class="opp-link" onclick="'+( o.name==='ACME_100'?'goDetail()':'' )+'">'+o.name+'</a></td>'+
+      '<td>'+(o.account?'<a class="opp-link">'+o.account+'</a>':'')+'</td>'+
+      '<td>'+o.site+'</td>'+
+      '<td>'+o.stage+'</td>'+
+      '<td>'+o.close+'</td>'+
+      '<td><a class="opp-link">'+o.owner+'</a></td>'+
+      '<td><span class="row-action">&#9660;</span></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ===== STAGE BAR =====
+var allStages = ['Qualification','Needs Analysis','Value Proposition','Id. Decision Mak...','Perception Anal...','Proposal/Price ...','Negotiation/Revi...','Closed'];
+var stageMap = {
+  'Qualification':'Qualification',
+  'Needs Analysis':'Needs Analysis',
+  'Value Proposition':'Value Proposition',
+  'Id. Decision Makers':'Id. Decision Mak...',
+  'Perception Analysis':'Perception Anal...',
+  'Proposal/Price Quote':'Proposal/Price ...',
+  'Negotiation/Review':'Negotiation/Revi...',
+  'Closed Won':'Closed',
+  'Closed Lost':'Closed'
+};
+
+function renderStageBar(){
+  var cur = stageMap[state.stage] || state.stage;
+  var curIdx = allStages.indexOf(cur);
+  if(curIdx===-1) curIdx=0;
+  var container = document.getElementById('stage-bar-container');
+  var html = '<div style="display:flex;overflow:hidden;">';
+  allStages.forEach(function(s,i){
+    var cls = i < curIdx ? 'sp-done' : (i===curIdx ? 'sp-current' : 'sp-future');
+    var check = i < curIdx ? '<span class="sp-check">&#10003;</span>' : '';
+    html += '<div class="sp-item '+cls+'" style="flex:1;padding:8px 2px;text-align:center;font-size:11px;display:flex;align-items:center;justify-content:center;gap:3px;color:'+(cls==='sp-future'?'#706E6B':'#fff')+';background:'+(cls==='sp-done'?'#04844B':(cls==='sp-current'?'#032D60':'#E0DFDE'))+';">'+check+s+'</div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+
+  // update detail fields
+  document.getElementById('detail-stage-val').innerHTML = state.stage + ' <span class="field-edit-icon">&#9998;</span>';
+  document.getElementById('detail-prob-val').innerHTML = state.probability + ' <span class="field-edit-icon">&#9998;</span>';
+}
+
+// ===== EDIT MODAL =====
+function openEditModal(){
+  var overlay = document.getElementById('edit-modal');
+  overlay.classList.add('open');
+  // Reset form to current state
+  document.getElementById('edit-stage').value = state.stage;
+  document.getElementById('edit-probability').value = state.probability;
+  // Reset visual states
+  document.getElementById('edit-stage').classList.remove('changed');
+  document.getElementById('edit-probability').classList.remove('changed','prob-changed');
+  // Reset PQ field
+  if(!state.quoteCreated){
+    document.getElementById('pq-search-wrap').style.display = 'block';
+    document.getElementById('pq-chip').style.display = 'none';
+    document.getElementById('pq-input').value = '';
+  } else {
+    showPQChip();
+  }
+  state.stageChanged = false;
+}
+
+function closeEditModal(){
+  document.getElementById('edit-modal').classList.remove('open');
+  document.getElementById('pq-dropdown').style.display='none';
+  state.pqDropdownOpen = false;
+}
+
+function onStageChange(val){
+  state.stageChanged = true;
+  var prob = stageProbMap[val] || '10%';
+  document.getElementById('edit-stage').classList.add('changed');
+  document.getElementById('edit-probability').value = prob;
+  document.getElementById('edit-probability').classList.add('changed');
+}
+
+function saveOpportunity(){
+  var newStage = document.getElementById('edit-stage').value;
+  var newProb = document.getElementById('edit-probability').value;
+  state.stage = newStage;
+  state.probability = newProb;
+  state.oppSaved = true;
+  closeEditModal();
+  renderStageBar();
+  // update related quotes
+  if(state.quoteCreated){
+    document.getElementById('related-quotes-count').textContent='(1)';
+    document.getElementById('related-quotes-dot').style.display='block';
+    var detail = document.getElementById('related-quotes-detail');
+    detail.style.display='block';
+    detail.innerHTML='<div class="related-quote-detail"><span class="related-quote-num">Q-00267</span><br>Net Amount: $0.00<br>Status: Draft<br>Created By: Sam Jones</div><div class="view-all">View All</div>';
+  }
+  showToast('Opportunity "ACME_100" was saved.', 'Q-00267');
+}
+
+// ===== PQ DROPDOWN =====
+function togglePQDropdown(){
+  var dd = document.getElementById('pq-dropdown');
+  if(dd.style.display==='none'){
+    dd.style.display='block';
+    state.pqDropdownOpen=true;
+  } else {
+    dd.style.display='none';
+    state.pqDropdownOpen=false;
+  }
+}
+
+function openNewQuote(){
+  document.getElementById('pq-dropdown').style.display='none';
+  state.pqDropdownOpen=false;
+  // Auto-select ACME_100 in quote modal
+  state.selectedOpp = 'ACME_100';
+  var quoteModal = document.getElementById('quote-modal');
+  quoteModal.classList.add('open');
+  // Show ACME_100 chip
+  document.getElementById('nq-opp-search').style.display='none';
+  var chip = document.getElementById('nq-opp-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="lookup-chip">'+
+    '<div class="lookup-chip-icon">&#9812;</div>'+
+    '<span class="lookup-chip-text">ACME_100</span>'+
+    '<button class="lookup-chip-x" onclick="clearOppChip()">&#10005;</button>'+
+  '</div><span style="position:absolute;right:6px;top:6px;cursor:pointer;color:var(--sf-text-muted);font-size:11px;">&#8635;</span>';
+}
+
+function closeQuoteModal(){
+  document.getElementById('quote-modal').classList.remove('open');
+  document.getElementById('nq-opp-dropdown').style.display='none';
+}
+
+function saveQuote(){
+  state.quoteCreated = true;
+  closeQuoteModal();
+  // Show quote created toast inside edit modal context
+  showToast('Quote "Q-00267" was created.', null);
+  // Show chip in primary quote field
+  showPQChip();
+}
+
+function showPQChip(){
+  document.getElementById('pq-search-wrap').style.display='none';
+  var chip = document.getElementById('pq-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="lookup-chip" style="background:var(--sf-yellow-bg);border-color:#D4A800;">'+
+    '<div class="lookup-chip-icon">&#128722;</div>'+
+    '<span class="lookup-chip-text">Q-00267</span>'+
+    '<button class="lookup-chip-x" onclick="clearPQChip()">&#10005;</button>'+
+  '</div><span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--sf-text-muted);font-size:11px;">&#8635;</span>';
+}
+
+function clearPQChip(){
+  state.quoteCreated=false;
+  document.getElementById('pq-search-wrap').style.display='block';
+  document.getElementById('pq-chip').style.display='none';
+  document.getElementById('pq-chip').innerHTML='';
+}
+
+// ===== OPP DROPDOWN =====
+function toggleOppDropdown(){
+  var dd = document.getElementById('nq-opp-dropdown');
+  dd.style.display = dd.style.display==='none'?'block':'none';
+}
+
+function selectOpp(name, account){
+  state.selectedOpp = name;
+  document.getElementById('nq-opp-dropdown').style.display='none';
+  document.getElementById('nq-opp-search').style.display='none';
+  var chip = document.getElementById('nq-opp-chip');
+  chip.style.display='block';
+  chip.innerHTML='<div class="lookup-chip" style="background:var(--sf-yellow-bg);border-color:#D4A800;">'+
+    '<div class="lookup-chip-icon">&#9812;</div>'+
+    '<span class="lookup-chip-text">'+name+'</span>'+
+    '<button class="lookup-chip-x" onclick="clearOppChip()">&#10005;</button>'+
+  '</div><span style="position:absolute;right:6px;top:6px;cursor:pointer;color:var(--sf-text-muted);font-size:11px;">&#8635;</span>';
+}
+
+function clearOppChip(){
+  state.selectedOpp=null;
+  document.getElementById('nq-opp-search').style.display='block';
+  document.getElementById('nq-opp-chip').style.display='none';
+  document.getElementById('nq-opp-chip').innerHTML='';
+  document.getElementById('nq-opp-input').value='';
+}
+
+// ===== MULTISELECT =====
+var msAvailSel=null, msChosSel=null;
+function msSelect(el, side){
+  if(side==='available'){
+    if(msAvailSel) msAvailSel.classList.remove('selected');
+    el.classList.add('selected');
+    msAvailSel=el;
+  } else {
+    if(msChosSel) msChosSel.classList.remove('selected');
+    el.classList.add('selected');
+    msChosSel=el;
+  }
+}
+function msMoveRight(){
+  if(!msAvailSel) return;
+  var item = msAvailSel.cloneNode(true);
+  item.classList.remove('selected');
+  item.onclick=function(){msSelect(this,'chosen');};
+  document.getElementById('ms-chosen').appendChild(item);
+  msAvailSel.style.display='none';
+  msAvailSel=null;
+}
+function msMoveLeft(){
+  if(!msChosSel) return;
+  var text=msChosSel.textContent;
+  document.getElementById('ms-available').querySelectorAll('.ms-item').forEach(function(i){
+    if(i.textContent===text) i.style.display='';
+  });
+  msChosSel.remove();
+  msChosSel=null;
+}
+
+// ===== TOAST =====
+function showToast(msg, linkText){
+  var container = document.getElementById('toast-container');
+  var t = document.createElement('div');
+  t.className='toast';
+  var inner = '<span>&#10003;</span><span>'+msg+'</span>';
+  if(linkText) inner+='<a class="toast-link" href="#" onclick="return false;">'+linkText+'</a>';
+  inner+='<button class="toast-close" onclick="this.parentElement.remove()">&#10005;</button>';
+  t.innerHTML=inner;
+  container.appendChild(t);
+  setTimeout(function(){if(t.parentElement)t.remove();},5000);
+}
+
+// ===== CLOSE DROPDOWNS ON OUTSIDE CLICK =====
+document.addEventListener('click',function(e){
+  var pqdd=document.getElementById('pq-dropdown');
+  var pqwrap=document.getElementById('pq-search-wrap');
+  if(pqdd && !pqwrap.contains(e.target)){
+    pqdd.style.display='none';
+  }
+  var nqdd=document.getElementById('nq-opp-dropdown');
+  var nqwrap=document.getElementById('nq-opp-search');
+  if(nqdd && !nqwrap.contains(e.target)){
+    nqdd.style.display='none';
+  }
+});
+
+// Close modals on overlay click
+document.getElementById('edit-modal').addEventListener('click',function(e){
+  if(e.target===this) closeEditModal();
+});
+document.getElementById('quote-modal').addEventListener('click',function(e){
+  if(e.target===this) closeQuoteModal();
+});
+
+// ESC key
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    var qm=document.getElementById('quote-modal');
+    var em=document.getElementById('edit-modal');
+    if(qm.classList.contains('open')) closeQuoteModal();
+    else if(em.classList.contains('open')) closeEditModal();
+  }
+});
+
+// ===== INIT =====
+renderStageBar();
+</script>
+</body>
+</html>

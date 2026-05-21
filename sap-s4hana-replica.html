@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SAP S/4HANA Cloud — Post General Journal Entries</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* ========================================================================
+     DESIGN TOKENS — SAP Fiori 3 / Horizon visual style
+     ======================================================================== */
+  :root{
+    /* Header / shell */
+    --shell-bg: #354A5F;
+    --shell-bg-strip: #2C3E50;
+    --shell-text: #FFFFFF;
+    --shell-text-muted: #C9D2DA;
+
+    /* Surfaces */
+    --bg: #EDEFF0;
+    --surface: #FFFFFF;
+    --surface-alt: #F5F6F7;
+
+    /* Borders */
+    --border: #D5DADD;
+    --border-strong: #B3B7BB;
+    --border-input: #89919A;
+
+    /* Text */
+    --text: #1D2D3E;
+    --text-strong: #0A0E14;
+    --text-secondary: #556B82;
+    --text-muted: #6A6D70;
+    --text-disabled: #A9B4BE;
+
+    /* Brand / action */
+    --brand: #0070F2;
+    --brand-hover: #0058C9;
+    --brand-active: #00468C;
+    --link: #0070F2;
+    --focus: #0070F2;
+
+    /* Semantic */
+    --success: #0A8A2E;
+    --success-bg: #E8F5EC;
+    --warning: #E76500;
+    --warning-bg: #FFF0E0;
+    --error: #BB0000;
+    --error-strong: #DC2626;
+    --error-bg: #FFEAEA;
+    --info: #0070F2;
+
+    /* SAP "blue accent" tone for input field icons */
+    --field-icon: #0064D9;
+
+    /* Required asterisk */
+    --required: #BB0000;
+
+    /* Tile */
+    --tile-border: #D5DADD;
+    --tile-shadow: 0 0 0.125rem 0 rgba(34,54,77,0.16), 0 0.125rem 0.5rem 0 rgba(34,54,77,0.08);
+
+    /* Hero banner */
+    --hero-1: #2B6FCB;
+    --hero-2: #1F4E8C;
+
+    /* Sizing */
+    --header-h: 44px;
+    --strip-h: 26px;
+    --subnav-h: 44px;
+
+    /* Radii */
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-pill: 999px;
+
+    /* Shadows */
+    --el-1: 0 0 0.125rem 0 rgba(34,54,77,0.16), 0 0.125rem 0.5rem 0 rgba(34,54,77,0.08);
+    --el-2: 0 0 0.125rem 0 rgba(34,54,77,0.16), 0 0.25rem 1rem 0 rgba(34,54,77,0.16);
+    --el-pop: 0 6px 20px rgba(34,54,77,0.18), 0 0 1px rgba(34,54,77,0.2);
+  }
+
+  html, body { background: var(--bg); color: var(--text); font-family: "72","72full","Segoe UI","Arial",Helvetica,sans-serif; font-size: 14px; }
+
+  /* SAP Shell */
+  .shell-strip { background:#27445E; height:var(--strip-h); color:#fff; font-size:13px; }
+  .shell-header { background: var(--shell-bg); height: var(--header-h); color:#fff; }
+  .shell-header .icon-btn{ width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+  .shell-header .icon-btn:hover{ background:rgba(255,255,255,0.10); }
+  .shell-header .icon-btn:active{ background:rgba(255,255,255,0.18); }
+
+  .avatar-circle { width:32px; height:32px; border-radius:50%; background:#5A788E; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; }
+
+  /* Sub-nav (Home tabs) */
+  .subnav { background:var(--shell-bg); color:#fff; height:var(--subnav-h); }
+  .subnav .tab { position:relative; padding:0 16px; height:44px; display:inline-flex; align-items:center; gap:6px; color:#fff; cursor:pointer; user-select:none; font-size:14px;}
+  .subnav .tab:hover { background:rgba(255,255,255,0.08); }
+  .subnav .tab.active::after{ content:""; position:absolute; left:14px; right:14px; bottom:0; height:3px; background:#fff; border-radius:2px 2px 0 0; }
+  .subnav .tab .caret{ opacity:.85; }
+  .badge-important{ background:#DC2626; color:#fff; font-size:10px; font-weight:600; padding:1px 6px; border-radius:3px; position:absolute; top:-2px; left:50%; transform:translateX(-50%); white-space:nowrap; }
+
+  /* Hero banner (home) */
+  .hero {
+    background:
+      linear-gradient(120deg, rgba(255,255,255,0.06) 0 30%, rgba(255,255,255,0.12) 30% 55%, rgba(255,255,255,0.05) 55% 100%),
+      linear-gradient(95deg, var(--hero-2), var(--hero-1) 60%, #3F86D4);
+    color:#fff;
+    border-radius:6px;
+    padding:22px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; right:-40px; top:-30px; width:520px; height:240px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 60%),
+      linear-gradient(45deg, rgba(255,255,255,0.06), rgba(255,255,255,0) 70%);
+    transform:skewX(-12deg);
+    pointer-events:none;
+  }
+
+  /* Buttons */
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; padding:0 12px; border-radius:6px; font-size:13px; line-height:1; border:1px solid transparent; cursor:pointer; user-select:none; transition: background .15s ease, color .15s ease, border-color .15s ease; }
+  .btn-transparent{ color:#fff; background:rgba(255,255,255,0.0); border-color: rgba(255,255,255,0.6); }
+  .btn-transparent:hover{ background: rgba(255,255,255,0.12); }
+  .btn-ghost{ background:#fff; color:#1D2D3E; border-color:#D5DADD; }
+  .btn-ghost:hover{ background:#F5F6F7; }
+  .btn-primary{ background:var(--brand); color:#fff; border-color:var(--brand); }
+  .btn-primary:hover{ background:var(--brand-hover); border-color:var(--brand-hover); }
+  .btn-primary:active{ background:var(--brand-active); border-color:var(--brand-active); }
+  .btn-primary:disabled{ background:#A9B4BE; border-color:#A9B4BE; cursor:not-allowed; color:#fff; }
+  .btn-link{ background:transparent; color:var(--link); border:none; padding:0 4px; height:auto; }
+  .btn-link:hover{ text-decoration:underline; }
+  .btn-link:disabled{ color:#A9B4BE; cursor:not-allowed; text-decoration:none; }
+
+  /* App tiles (Apps section) */
+  .app-tile { display:flex; align-items:flex-start; gap:14px; padding:14px 10px; border-radius:6px; cursor:pointer; transition: background .15s; }
+  .app-tile:hover{ background:#F0F2F4; }
+  .app-tile .ic{
+    width:42px; height:42px; border-radius:6px; background:#5B738B; color:#fff;
+    display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  .app-tile .ic.violet{ background:#5C5481; }
+  .app-tile .ic.green-tile{ background:#6B7F8E; }
+  .app-tile .label-title{ font-weight:600; font-size:14px; color:var(--text-strong); }
+  .app-tile .label-sub{ font-size:12px; color:var(--text-secondary); margin-top:2px; }
+
+  /* Insights tiles */
+  .insight-tile { background:#fff; border:1px solid var(--tile-border); border-radius:6px; padding:14px; min-height:170px; width:240px; box-shadow: var(--tile-shadow); cursor:pointer; transition: transform .15s, box-shadow .15s; }
+  .insight-tile:hover{ box-shadow: var(--el-2); }
+  .insight-tile.selected{ outline:1px dashed #6F92C0; outline-offset:2px; }
+
+  /* Tooltip */
+  .tt { position:absolute; background:#0F1721; color:#fff; padding:6px 10px; font-size:12px; border-radius:3px; pointer-events:none; opacity:0; transform: translateY(-4px); transition: opacity .12s ease; white-space:nowrap; z-index:60;}
+  .tt.show{ opacity:1; transform: translateY(0); }
+  .tt::after{ content:""; position:absolute; top:-4px; left:50%; transform:translateX(-50%); border-left:5px solid transparent; border-right:5px solid transparent; border-bottom:5px solid #0F1721; }
+
+  /* Form */
+  .field-label { color:#475E75; font-size:13px; }
+  .field-input {
+    height:32px; border:1px solid #89919A; border-bottom:2px solid #89919A; background:#fff; border-radius:0;
+    padding:0 8px; font-size:13px; color:var(--text-strong); width:100%; outline:none;
+  }
+  .field-input::placeholder{ color:#A9B4BE; font-style:italic; }
+  .field-input:hover{ border-color:#566B82; }
+  .field-input:focus{ border-color:#0070F2; border-bottom:2px solid #0070F2; box-shadow: 0 0 0 1px #0070F2; }
+  .field-input:disabled{ background:#F5F6F7; color:#88909A; }
+  .field-input.error{ border-color:#BB0000; border-bottom-color:#BB0000; }
+
+  .field-wrap{ position:relative; }
+  .field-wrap .vh-btn{ position:absolute; right:0; top:0; bottom:0; width:30px; display:inline-flex; align-items:center; justify-content:center; color:#0064D9; cursor:pointer; border-left:1px solid #D5DADD; background:#fff; }
+  .field-wrap .vh-btn:hover{ background:#F5F6F7; }
+  .field-wrap .vh-btn:active{ background:#E5EEF8; }
+  .field-wrap.with-vh .field-input{ padding-right:34px; }
+
+  .req::after{ content:" *"; color:#BB0000; font-weight:bold; }
+
+  /* Tab nav (Header / Attachments / Notes / Balances) */
+  .ftab { position:relative; padding:10px 6px; color:#556B82; font-size:14px; cursor:pointer; }
+  .ftab:hover{ color:#0070F2; }
+  .ftab.active { color:#0070F2; font-weight:600; }
+  .ftab.active::after{ content:""; position:absolute; left:0; right:0; bottom:-1px; height:3px; background:#0070F2; border-radius:2px 2px 0 0; }
+
+  /* Line item row chrome */
+  .line-row { display:flex; align-items:center; gap:14px; padding:10px 16px; background:#fff; border-top:1px solid #ECEEF0; }
+  .icon-square-btn{ width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; border-radius:4px; color:#0070F2; cursor:pointer; }
+  .icon-square-btn:hover{ background:#E5EEF8; }
+  .icon-square-btn.danger{ color:#0070F2; }
+  .icon-square-btn.danger:hover{ background:#FDEEEE; color:#BB0000; }
+
+  /* Popovers / Dropdown */
+  .popover{
+    position:absolute; z-index:50; background:#fff; border:1px solid #D5DADD; border-radius:4px; box-shadow: var(--el-pop);
+    min-width: 720px; max-width: 95vw; padding:0;
+  }
+  .popover.compact{ min-width:300px; }
+  .popover .ph { padding:10px 12px; font-size:12px; color:#556B82; border-bottom:1px solid #ECEEF0; display:grid; grid-template-columns: 130px 110px 140px 200px 240px 180px; gap:16px; }
+  .popover .grp { padding:10px 12px; font-weight:700; font-size:13px; color:#1D2D3E; border-bottom:1px solid #ECEEF0; background:#F5F6F7; }
+  .popover .pr { padding:10px 12px; display:grid; grid-template-columns: 130px 110px 140px 200px 240px 180px; gap:16px; font-size:13px; cursor:pointer; border-bottom:1px solid #F2F3F4; }
+  .popover .pr:hover{ background:#E5EEF8; }
+  .popover .pr.kbd{ background:#E5EEF8; }
+
+  /* Bottom action bar */
+  .action-bar { position:sticky; bottom:0; left:0; right:0; background:#fff; border-top:1px solid #D5DADD; padding:8px 16px; display:flex; align-items:center; justify-content:flex-end; gap:18px; box-shadow: 0 -1px 0 rgba(0,0,0,0.04); }
+
+  /* Floating action buttons (right side) */
+  .fab { width:44px; height:44px; border-radius:999px; background:#22323F; color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+  .fab.task { background:#0596C7; }
+  .fab-badge{ position:absolute; top:-4px; right:-4px; background:#fff; color:#1D2D3E; border:1px solid #D5DADD; border-radius:999px; min-width:20px; height:20px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; padding:0 4px; }
+
+  /* Show-more/less chevron rotation */
+  .chev{ transition: transform .2s ease; }
+  .rot{ transform: rotate(180deg); }
+
+  /* Toast */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0F1721; color:#fff; padding:10px 16px; border-radius:4px; font-size:13px; z-index:200; opacity:0; pointer-events:none; transition: opacity .2s ease, transform .2s ease; }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(-4px); }
+
+  /* Modal */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,33,0.45); display:none; align-items:center; justify-content:center; z-index:150; }
+  .modal-backdrop.show{ display:flex; }
+  .modal { background:#fff; border-radius:6px; box-shadow: var(--el-pop); min-width:480px; max-width:92vw; }
+  .modal-header { padding:14px 16px; border-bottom:1px solid #ECEEF0; font-weight:600; color:#1D2D3E; }
+  .modal-body { padding:16px; color:#1D2D3E; font-size:13px; }
+  .modal-footer{ padding:12px 16px; border-top:1px solid #ECEEF0; display:flex; justify-content:flex-end; gap:8px; }
+
+  /* Toggle */
+  .toggle { width:38px; height:22px; border-radius:999px; background:#D5DADD; position:relative; cursor:pointer; transition: background .15s; }
+  .toggle::after{ content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; background:#fff; border-radius:50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: transform .15s; }
+  .toggle.on{ background:#0070F2; }
+  .toggle.on::after{ transform: translateX(16px); }
+
+  /* Highlight rows in manage view */
+  .mv-row { display:grid; grid-template-columns: 1.2fr 2fr 3fr 1.5fr 0.6fr 1.5fr 0.6fr 30px; gap:14px; padding:14px 16px; border-bottom:1px solid #ECEEF0; align-items:center; font-size:13px; }
+  .mv-row.header { background:#F5F6F7; color:#556B82; font-weight:600; }
+  .mv-row a{ color:#0070F2; }
+  .mv-row a:hover{ text-decoration:underline; }
+
+  /* Small SVG icon helper */
+  svg.ic{ width:16px; height:16px; stroke-width:1.5; fill:none; stroke:currentColor; }
+  svg.ic-lg{ width:20px; height:20px; }
+
+  /* Required asterisk inside labels */
+  .req-star{ color:#BB0000; font-weight:700; }
+
+  /* Right side rail of dots */
+  .dot-rail { position:fixed; right:8px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:18px; z-index:30; }
+
+  /* Hide scrollbars on certain decorative elements */
+  .nice-scroll::-webkit-scrollbar{ height:8px; width:8px; }
+  .nice-scroll::-webkit-scrollbar-thumb{ background:#C9D2DA; border-radius:8px; }
+
+  /* Focus visible style for keyboard users */
+  :focus-visible{ outline: 2px solid #0070F2; outline-offset:2px; }
+
+  /* Hide screens by default */
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ============================ SAP SHELL STRIP ============================ -->
+<div class="shell-strip flex items-center justify-center gap-2 text-white">
+  <svg class="ic" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-8 0 4 4 0 008 0zM3 21a8 8 0 0118 0" stroke-linecap="round"/></svg>
+  <span class="font-semibold">Partner Demo Customizing</span>
+  <span class="opacity-80">XVG/100</span>
+</div>
+
+<!-- ============================ SAP SHELL HEADER ============================ -->
+<header class="shell-header w-full flex items-center px-1 select-none">
+  <button class="icon-btn" aria-label="Menu" id="menuBtn">
+    <svg class="ic-lg ic" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+  </button>
+  <button class="icon-btn" id="backBtn" aria-label="Back" style="display:none">
+    <svg class="ic-lg ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <!-- SAP logo -->
+  <div class="ml-1 mr-3 flex items-center">
+    <div class="bg-[#1B90FF] text-white font-extrabold tracking-tight text-[15px] px-2 py-1 rounded" style="clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%); padding-right:18px;">SAP</div>
+  </div>
+
+  <span class="text-white/90 text-[13px]">S/4HANA Cloud</span>
+  <span class="mx-3 text-white/30">|</span>
+
+  <button class="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/10" id="appTitleBtn">
+    <span class="text-[16px] font-semibold" id="appTitle">Home</span>
+    <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <div class="flex-1 flex items-center justify-center gap-3" id="versionToggleSlot"></div>
+
+  <div class="ml-auto flex items-center">
+    <button class="icon-btn" aria-label="Search"><svg class="ic-lg ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg></button>
+    <button class="icon-btn relative" aria-label="Notifications">
+      <svg class="ic-lg ic" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1112 0v4l2 3H4l2-3V8z" stroke-linejoin="round"/><path d="M10 19a2 2 0 004 0"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="Hints"><svg class="ic-lg ic" viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></button>
+    <button class="icon-btn" aria-label="Help"><svg class="ic-lg ic" viewBox="0 0 24 24"><path d="M12 18a8 8 0 110-16 8 8 0 010 16zM8 22h8M12 18v2"/></svg></button>
+    <button class="icon-btn" aria-label="Help2"><svg class="ic-lg ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 4M12 17h.01" stroke-linecap="round"/></svg></button>
+    <button class="ml-1 mr-2" aria-label="Profile"><span class="avatar-circle">R</span></button>
+  </div>
+</header>
+
+<!-- ============================ HOME SCREEN ============================ -->
+<section id="screen-home" class="screen active">
+
+  <!-- Sub navigation -->
+  <nav class="subnav flex items-center px-2 border-b border-white/5" id="subnav">
+    <a class="tab active" data-tab="My Home" tabindex="0">My Home</a>
+    <a class="tab" data-tab="Sourcing and Contracting" tabindex="0">
+      Sourcing and Contracting <svg class="ic caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="tab" data-tab="Quality Planning" tabindex="0">Quality Planning</a>
+    <a class="tab" data-tab="Quality Inspection" tabindex="0">Quality Inspection</a>
+    <a class="tab" data-tab="Quality Engineering" tabindex="0">Quality Engineering</a>
+    <a class="tab" data-tab="Shipping" tabindex="0">Shipping</a>
+    <a class="tab" data-tab="Purchasing" tabindex="0">
+      Purchasing <svg class="ic caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="tab relative" data-tab="Shipping - Just-In-Time" tabindex="0">
+      <span class="badge-important">Important</span>
+      Shipping - Just-In-Time
+    </a>
+    <a class="tab ml-auto" data-tab="More" tabindex="0">
+      More <svg class="ic caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </nav>
+
+  <main class="px-6 pt-4 pb-10 max-w-[1600px] mx-auto">
+
+    <!-- Hero -->
+    <div class="hero flex items-center">
+      <div class="flex-1">
+        <div class="text-[13px] opacity-90" id="todayDate">Thursday, May 14, 2026</div>
+        <div class="text-[24px] font-semibold mt-1">Hi , great to see you!</div>
+      </div>
+      <div class="flex items-center gap-2 z-10 relative">
+        <button class="btn btn-transparent" id="recapBtn">Recap</button>
+        <button class="btn btn-transparent" id="settingsBtn">My Home Settings</button>
+      </div>
+    </div>
+
+    <!-- Apps -->
+    <div class="mt-6 flex items-center">
+      <button class="flex items-center gap-2 text-[18px] font-semibold text-[#1D2D3E]" id="appsCollapse">
+        Apps <svg class="ic chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="ml-auto flex items-center gap-2">
+        <span id="tooltipManage" class="tt" style="position:relative; padding:8px 14px;">Manage Purchase Requisition</span>
+        <button class="btn btn-link flex items-center gap-1" id="addAppsBtn">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M10 14L20 4M20 14v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Add Apps
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs (Favorites / Most Used / Recently Used / Recommended) -->
+    <div class="mt-3 border-b border-[#D5DADD] flex items-center gap-6" id="appsTabs">
+      <button class="ftab active" data-pane="favorites">Favorites</button>
+      <button class="ftab" data-pane="most">Most Used</button>
+      <button class="ftab" data-pane="recent">Recently Used</button>
+      <button class="ftab" data-pane="recommended">Recommended</button>
+    </div>
+
+    <div id="appsPanel" class="mt-4 bg-white rounded-md border border-[#ECEEF0] p-4">
+      <div class="grid grid-cols-4 gap-4" id="favoritesGrid">
+        <!-- Favorites injected by JS -->
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="mt-8 flex items-center">
+      <button class="flex items-center gap-2 text-[18px] font-semibold text-[#1D2D3E]" id="insightsCollapse">
+        Insights Tiles (2) <svg class="ic chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="ml-auto">
+        <button class="btn btn-link" id="addTilesBtn">Add Tiles</button>
+      </div>
+    </div>
+
+    <div id="insightsGrid" class="mt-3 flex flex-wrap gap-4">
+      <div class="insight-tile selected" data-app="post-gje">
+        <div class="text-[15px] font-semibold leading-tight">Manage Sales<br/>Orders</div>
+        <div class="mt-12 flex items-end gap-3 text-[#1D2D3E]">
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px" stroke="#1D2D3E" fill="none" stroke-width="1.6"><path d="M4 6h12l4 4v8a2 2 0 01-2 2H4z"/><path d="M8 10h8M10 14h4M8 4h12v6"/></svg>
+          <div class="text-[36px] font-light leading-none">140</div>
+        </div>
+      </div>
+      <div class="insight-tile" data-app="my-inbox">
+        <div class="text-[15px] font-semibold leading-tight">My Inbox</div>
+        <div class="text-[13px] text-[#556B82]">All Items</div>
+        <div class="mt-10 flex items-end gap-3 text-[#1D2D3E]">
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px" stroke="#1D2D3E" fill="none" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 9l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="text-[36px] font-light leading-none">0</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ============================ POST GENERAL JOURNAL ENTRIES ============================ -->
+<section id="screen-post" class="screen">
+  <div class="bg-white relative">
+    <!-- Total Balance ribbon -->
+    <div class="px-6 pt-3 pb-2 flex justify-end items-baseline gap-2">
+      <span class="text-[13px] text-[#556B82]">Total Balance:</span>
+      <span id="totalBalance" class="text-[16px] font-semibold text-[#0A8A2E]">0.00</span>
+      <span class="text-[13px] text-[#556B82]">USD</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="px-6 border-b border-[#D5DADD]">
+      <div class="flex items-center gap-6">
+        <button class="ftab active" data-htab="header">Header</button>
+        <button class="ftab" data-htab="attachments">Attachments</button>
+        <button class="ftab" data-htab="notes">Notes</button>
+        <button class="ftab" data-htab="balances">Balances</button>
+      </div>
+    </div>
+
+    <!-- Header section -->
+    <div class="px-6 py-5">
+      <div id="hdr-header" class="grid grid-cols-3 gap-x-12 gap-y-4">
+        <!-- col 1 -->
+        <div>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="field-label req" for="f-jeDate">Journal Entry Date:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-jeDate" class="field-input" placeholder="e.g. 12/31/2026" />
+              <button class="vh-btn" aria-label="Pick date"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></button>
+            </div>
+
+            <label class="field-label req" for="f-postDate">Posting Date:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-postDate" class="field-input" />
+              <button class="vh-btn" aria-label="Pick date"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></button>
+            </div>
+
+            <label class="field-label" for="f-period">Period:</label>
+            <div class="field-wrap"><input id="f-period" class="field-input" readonly placeholder="" /></div>
+
+            <label class="field-label req" for="f-jeType">Journal Entry Type:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-jeType" class="field-input" value="SA" />
+              <button class="vh-btn" aria-label="Pick type"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <!-- col 2 -->
+        <div>
+          <div class="grid grid-cols-[160px_1fr] items-center gap-3">
+            <label class="field-label req" for="f-coCode">Company Code:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-coCode" class="field-input" value="1710 (US Company Code Palo Alto)" />
+              <button class="vh-btn" aria-label="Pick"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+            </div>
+
+            <label class="field-label req" for="f-currency">Transaction Currency:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-currency" class="field-input" value="USD (United States Dollar)" />
+              <button class="vh-btn" aria-label="Pick"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+            </div>
+
+            <label class="field-label" for="f-ledger">Ledger Group:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-ledger" class="field-input" />
+              <button class="vh-btn" aria-label="Pick"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+            </div>
+
+            <label class="field-label" for="f-ref">Reference:</label>
+            <div class="field-wrap"><input id="f-ref" class="field-input" /></div>
+          </div>
+        </div>
+        <!-- col 3 -->
+        <div>
+          <div class="grid grid-cols-[150px_1fr] items-center gap-3">
+            <label class="field-label" for="f-icompany">Intercompany Transac:</label>
+            <div class="field-wrap"><input id="f-icompany" class="field-input" /></div>
+
+            <label class="field-label" for="f-hdrText">Header Text:</label>
+            <div class="field-wrap"><input id="f-hdrText" class="field-input" /></div>
+
+            <label class="field-label" for="f-exch">Exchange Rate:</label>
+            <div class="field-wrap"><input id="f-exch" class="field-input" /></div>
+
+            <label class="field-label" for="f-translation">Translation Date:</label>
+            <div class="field-wrap with-vh">
+              <input id="f-translation" class="field-input" placeholder="e.g. 12/31/2026" />
+              <button class="vh-btn" aria-label="Pick date"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header tab panels (other than Header tab) -->
+      <div id="hdr-attachments" class="hidden text-[13px] text-[#556B82] py-12 text-center">No attachments</div>
+      <div id="hdr-notes" class="hidden text-[13px] text-[#556B82] py-12 text-center">No notes</div>
+      <div id="hdr-balances" class="hidden text-[13px] text-[#556B82] py-12 text-center">No balances to display</div>
+
+      <div class="text-right mt-2"><button class="btn btn-link" id="showMore">Show More</button></div>
+    </div>
+
+    <!-- Line Items header -->
+    <div class="px-6 flex items-center border-t border-[#D5DADD] bg-[#F5F6F7]">
+      <div class="py-3 text-[14px] font-semibold text-[#1D2D3E]">Line Items (<span id="liCount">2</span>)</div>
+      <div class="ml-auto flex items-center gap-4 text-[13px] text-[#0070F2]">
+        <button class="icon-square-btn" id="collapseAll" title="Collapse all"><svg class="ic" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="icon-square-btn" id="expandAll" title="Expand all"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="btn btn-link" id="addLine">Add</button>
+        <button class="btn btn-link" disabled>Previous page</button>
+        <span class="text-[#556B82]">1 / 1</span>
+        <button class="btn btn-link" disabled>Next page</button>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div id="lineItems" class="bg-white"></div>
+
+    <div class="px-6 py-3 border-t border-[#D5DADD] flex justify-end gap-12">
+      <div class="text-[13px] text-[#556B82]">Total Debit: <span id="totDebit" class="text-[#1D2D3E] font-semibold">0.00</span> USD</div>
+      <div class="text-[13px] text-[#556B82]">Total Credit: <span id="totCredit" class="text-[#1D2D3E] font-semibold">0.00</span> USD</div>
+    </div>
+
+    <!-- Tax Items -->
+    <div class="px-6 pt-5 pb-3 border-t border-[#D5DADD] mt-4">
+      <div class="flex items-center gap-3">
+        <span class="text-[14px] font-semibold">Tax Items</span>
+        <span class="text-[#0070F2] flex items-center gap-1 cursor-pointer">Standard
+          <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="text-[13px] text-[#556B82] ml-3 flex items-center gap-2">Calculate Tax
+          <span id="calcTax" class="w-4 h-4 border border-[#89919A] inline-block cursor-pointer rounded-sm relative"></span>
+        </span>
+        <span class="text-[13px] text-[#556B82] ml-3 flex items-center gap-2">Net Entry <span class="text-[#0070F2]">Yes</span></span>
+        <span class="text-[13px] text-[#556B82] ml-3">Tax Reporting Date</span>
+        <div class="field-wrap with-vh w-[180px]">
+          <input id="f-taxDate" class="field-input" placeholder="e.g. 12/31/2026" />
+          <button class="vh-btn"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></button>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <button class="icon-square-btn" title="Copy"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V4h12"/></svg></button>
+          <button class="icon-square-btn" title="Settings"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.7 1.7 0 008 19.4a1.7 1.7 0 00-1.8.3l-.1.1A2 2 0 113.3 17l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H2a2 2 0 110-4h.1A1.7 1.7 0 003.6 9a1.7 1.7 0 00-.3-1.8l-.1-.1A2 2 0 116 4.3l.1.1a1.7 1.7 0 001.8.3H8a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
+          <div class="flex items-center border border-[#89919A] rounded-[4px]">
+            <button class="icon-square-btn" style="border-radius:0" title="Variant"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg></button>
+            <button class="icon-square-btn" style="border-radius:0; border-left:1px solid #D5DADD" title="Toggle"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <!-- Tax table header -->
+      <div class="grid grid-cols-[1fr_1.4fr_1.4fr_1.4fr_1fr_1fr_1fr_1fr_1fr] gap-3 text-[12px] text-[#556B82] mt-4 pb-2 border-b border-[#ECEEF0]">
+        <div>Tax Doc. Item</div><div>G/L Account</div><div>Debit Amt in DC</div><div>Credit Amt in DC</div><div>LC Tax</div><div>LC 2 Tax</div><div>LC 3 Tax</div><div>Tax Jurisdiction</div><div>Tax Code</div>
+      </div>
+      <div class="text-center text-[13px] text-[#556B82] py-6">No data available</div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="btn btn-link" id="selTpl">Select Templates</button>
+      <button class="btn btn-link" id="upload">Upload New Entry</button>
+      <button class="btn btn-link" id="hold">Hold Journal Entry</button>
+      <button class="btn btn-link" id="simulate">Simulate</button>
+      <button class="btn btn-primary" id="postBtn" disabled>Post</button>
+      <button class="icon-square-btn" id="exitBtn" title="Exit"><svg class="ic" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14L21 3M21 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ MANAGE JOURNAL ENTRIES — ENTRY VIEW ============================ -->
+<section id="screen-manage" class="screen">
+  <div class="bg-white">
+    <div class="px-6 pt-4 flex items-center gap-3">
+      <div class="text-[20px] font-semibold text-[#0070F2]" id="mvTitle">Journal Entry (YCQF5M4614) - Entry View</div>
+      <button id="mvExpand" class="text-[#0070F2]"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+
+    <!-- Header tabs -->
+    <div class="px-6 mt-6 border-b border-[#D5DADD]">
+      <div class="flex items-center gap-8" id="mvTabs">
+        <div class="ftab active">Header</div>
+        <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Attachments</span></div>
+        <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Notes</span></div>
+        <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Related Documents</span></div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-6 grid grid-cols-3 gap-x-12 gap-y-4">
+      <div>
+        <div class="field-label">Journal Entry Date:</div>
+        <div class="text-[14px] mb-3" id="mv-jed">12/15/2025</div>
+        <div class="field-label">Posting Date:</div>
+        <div class="text-[14px] mb-3" id="mv-pd">12/15/2025</div>
+        <div class="field-label">Posting Period:</div>
+        <div class="text-[14px] mb-3">12 / 2025</div>
+        <div class="field-label">Journal Entry Type:</div>
+        <div class="text-[14px]">SA (G/L Account Document)</div>
+      </div>
+      <div>
+        <div class="field-label">Company Code:</div>
+        <div class="text-[14px] mb-3" id="mv-cc">1710 (US Company Code)</div>
+        <div class="field-label">Transaction Currency:</div>
+        <div class="text-[14px] mb-3">United States Dollar (USD)</div>
+      </div>
+      <div>
+        <div class="field-label">Reference:</div>
+        <div class="text-[14px] mb-3">—</div>
+        <div class="field-label">Reference Document Type:</div>
+        <div class="text-[14px] mb-3">BKPFF (Actg Doc.Direct Inpt)</div>
+        <div class="field-label">Header Text:</div>
+        <div class="text-[14px] mb-3">—</div>
+        <div class="field-label">Journal Entry Created By:</div>
+        <div class="text-[14px] mb-3" id="mv-by">Requestor (CB9980000050)</div>
+        <div class="field-label">Entered At (Local Time):</div>
+        <div class="text-[14px]" id="mv-when">05/14/2026, 06:32</div>
+      </div>
+    </div>
+
+    <div class="text-right px-6"><button class="btn btn-link">Show More</button></div>
+
+    <!-- Line items -->
+    <div class="px-6 mt-6 flex items-center">
+      <span class="text-[14px] font-semibold">Line Items (2)</span>
+      <span class="ml-3 text-[#0070F2] flex items-center gap-1 cursor-pointer">Standard
+        <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="ml-auto text-[#0070F2] cursor-pointer hover:underline" id="tAcctView">T-Account View</span>
+      <div class="flex items-center gap-2 ml-4">
+        <button class="icon-square-btn"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V4h12"/></svg></button>
+        <button class="icon-square-btn"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg></button>
+        <div class="flex border border-[#89919A] rounded">
+          <button class="icon-square-btn" style="border-radius:0"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg></button>
+          <button class="icon-square-btn" style="border-radius:0; border-left:1px solid #D5DADD"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <div class="mv-row header">
+        <div>Posting View I…</div><div>G/L Account</div><div>Profit Center</div><div></div><div class="text-right">Debit</div><div></div><div class="text-right">Credit</div><div></div>
+      </div>
+      <div class="mv-row" id="mv-r1">
+        <a href="#">000001</a>
+        <a href="#" id="mv-r1-gl">10010000 (Petty Cash)</a>
+        <div>YB600 (Shared Services)</div>
+        <div></div><div class="text-right" id="mv-r1-d">100.00</div><div>USD</div><div class="text-right">0.00</div><div>USD</div>
+      </div>
+      <div class="mv-row" id="mv-r2">
+        <a href="#">000002</a>
+        <a href="#" id="mv-r2-gl">10010000 (Petty Cash)</a>
+        <div>YB600 (Shared Services)</div>
+        <div></div><div class="text-right">0.00</div><div>USD</div><div class="text-right" id="mv-r2-c">100.00</div><div>USD</div>
+      </div>
+    </div>
+
+    <!-- Tax -->
+    <div class="px-6 mt-6 flex items-center">
+      <span class="text-[14px] font-semibold">Tax</span>
+      <span class="ml-3 text-[#0070F2] flex items-center gap-1 cursor-pointer">Standard
+        <svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="icon-square-btn"><svg class="ic" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V4h12"/></svg></button>
+        <button class="icon-square-btn"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg></button>
+        <div class="flex border border-[#89919A] rounded">
+          <button class="icon-square-btn" style="border-radius:0"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg></button>
+          <button class="icon-square-btn" style="border-radius:0; border-left:1px solid #D5DADD"><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 mt-2 grid grid-cols-[1fr_2fr_2fr_1fr_1fr_1fr] gap-3 text-[12px] text-[#556B82] pb-2 border-b border-[#ECEEF0]">
+      <div>Code</div><div>G/L Account</div><div>Tax Base Amount</div><div class="text-right">Debit</div><div class="text-right">Credit</div><div>Tax Rate</div>
+    </div>
+    <div class="text-center text-[13px] text-[#556B82] py-8">No tax data available</div>
+
+    <div class="action-bar" id="manageActionBar">
+      <!-- Action bar contents are injected by setManageMode() -->
+    </div>
+  </div>
+</section>
+
+<!-- ============================ Right side rail (decorative) ============================ -->
+<div class="dot-rail">
+  <button class="fab" title="Insights"><svg class="ic ic-lg" viewBox="0 0 24 24"><path d="M12 3a7 7 0 014 12.8V19a2 2 0 01-2 2h-4a2 2 0 01-2-2v-3.2A7 7 0 0112 3z"/><path d="M9 22h6"/></svg></button>
+</div>
+<div style="position:fixed; right:18px; bottom:18px; z-index:40;">
+  <button class="fab task relative" id="fabTasks" aria-label="Tasks">
+    <svg class="ic ic-lg" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+    <span class="fab-badge" id="taskBadge">10</span>
+  </button>
+</div>
+
+<!-- ============================ Modal & toast ============================ -->
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <div class="modal" id="modal">
+    <div class="modal-header" id="modalTitle">Confirmation</div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalOk">OK</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================================
+   STATE / DATA
+   ===================================================================================== */
+const STATE = {
+  view: 'home', // home | post | manage
+  activeAppTab: 'favorites',
+  activeHeaderTab: 'header',
+  // Form
+  jeDate: '',
+  postDate: '05/14/2026',
+  period: '',
+  jeType: 'SA',
+  coCode: '1710 (US Company Code Palo Alto)',
+  currency: 'USD (United States Dollar)',
+  ledger: '',
+  reference: '',
+  intercompany: '',
+  hdrText: '',
+  exch: '',
+  translation: '',
+  // Lines
+  lines: [
+    { coCode:'1710 ...', gl:'', debit:'0.00', credit:'0.00', expanded:false, details:{} },
+    { coCode:'1710 ...', gl:'', debit:'0.00', credit:'0.00', expanded:false, details:{} },
+  ],
+  calcTax: false,
+  toastTimer: null,
+  posted: false,
+  manageMode: 'simulate',  // 'simulate' or 'posted' — drives the Manage Journal Entries view
+  simulateId: 'YCQF5M4614',
+  postedDocId: '100000007',
+};
+
+/* G/L accounts — used by value-help dropdown */
+const GL_ACCOUNTS = [
+  { id:'10010000', co:'1710', cha:'YCOA', name:'Petty Cash', long:'Petty Cash' },
+  { id:'12532000', co:'1710', cha:'YCOA', name:'Clrg cont.claims-che', long:'Clrg Cont.Claims-Check/Bill of Exch. Payments' },
+];
+
+const APPS = {
+  favorites: [
+    { id:'msales', title:'Manage Sales Orders', tone:'gray', icon:'order' },
+    { id:'post-gje', title:'Post General Journal Entries', tone:'gray', icon:'journal' },
+    { id:'display-li', title:'Display Line Items in General Ledger', tone:'violet', icon:'ledger' },
+    { id:'inbox', title:'My Inbox', sub:'All Items', tone:'gray', icon:'inbox' },
+    { id:'csi', title:'Create Supplier Invoice', tone:'gray', icon:'invoice' },
+  ],
+  most: [
+    { id:'post-gje', title:'Post General Journal Entries', tone:'gray', icon:'journal' },
+    { id:'inbox', title:'My Inbox', sub:'All Items', tone:'gray', icon:'inbox' },
+  ],
+  recent: [
+    { id:'post-gje', title:'Post General Journal Entries', tone:'gray', icon:'journal' },
+  ],
+  recommended: [
+    { id:'msales', title:'Manage Sales Orders', tone:'gray', icon:'order' },
+    { id:'csi', title:'Create Supplier Invoice', tone:'gray', icon:'invoice' },
+  ],
+};
+
+const ICONS = {
+  order: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h6M9 11h6M9 15h4"/><circle cx="16" cy="16" r="3" fill="#fff" stroke="none"/><text x="16" y="18" text-anchor="middle" font-size="6" fill="#5B738B">$</text></svg>',
+  journal: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h4"/><path d="M16 14l2 2-1 2-2 1 1-2z" fill="#fff" stroke="none"/></svg>',
+  ledger: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M7 8v8M11 10v6M15 7v9M19 11v5"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 9l4 4 6-7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  invoice: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 8h8M8 12h8M8 16h6"/><circle cx="17" cy="6" r="3" fill="#fff" stroke="none"/><text x="17" y="8" text-anchor="middle" font-size="6" fill="#5B738B">+</text></svg>',
+};
+
+/* =====================================================================================
+   RENDER HOME — apps grid
+   ===================================================================================== */
+function renderApps(){
+  const grid = document.getElementById('favoritesGrid');
+  grid.innerHTML = '';
+  const list = APPS[STATE.activeAppTab];
+  if(!list.length){
+    grid.innerHTML = '<div class="text-[13px] text-[#556B82] py-8 col-span-4 text-center">No apps in this group</div>';
+    return;
+  }
+  list.forEach(a=>{
+    const div = document.createElement('div');
+    div.className = 'app-tile';
+    div.tabIndex = 0;
+    div.dataset.app = a.id;
+    div.innerHTML = `
+      <div class="ic ${a.tone === 'violet' ? 'violet' : ''}">${ICONS[a.icon] || ICONS.journal}</div>
+      <div>
+        <div class="label-title">${a.title}</div>
+        ${a.sub ? `<div class="label-sub">${a.sub}</div>` : ''}
+      </div>`;
+    div.addEventListener('click', ()=> openApp(a.id, a.title));
+    div.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openApp(a.id, a.title); }});
+
+    // Hover tooltip for journal entries app
+    if(a.id === 'post-gje'){
+      div.addEventListener('mouseenter', e=> showTooltip(e.currentTarget, 'Post General Journal Entries'));
+      div.addEventListener('mouseleave', hideTooltip);
+    }
+    grid.appendChild(div);
+  });
+}
+
+function showTooltip(target, text){
+  // Use the fixed tooltip element above Add Apps to match screenshot
+  const tt = document.getElementById('tooltipManage');
+  tt.textContent = text;
+  tt.classList.add('show');
+}
+function hideTooltip(){ document.getElementById('tooltipManage').classList.remove('show'); }
+
+/* Apps tabs */
+document.getElementById('appsTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.ftab');
+  if(!btn) return;
+  document.querySelectorAll('#appsTabs .ftab').forEach(b=> b.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.activeAppTab = btn.dataset.pane;
+  renderApps();
+});
+
+/* Collapse / Expand sections */
+function setupCollapse(buttonId, panelId){
+  document.getElementById(buttonId).addEventListener('click', ()=>{
+    const panel = document.getElementById(panelId);
+    const chev = document.querySelector(`#${buttonId} .chev`);
+    panel.classList.toggle('hidden');
+    chev.classList.toggle('rot');
+  });
+}
+setupCollapse('appsCollapse','appsPanel');
+setupCollapse('insightsCollapse','insightsGrid');
+
+/* Hero buttons */
+document.getElementById('recapBtn').addEventListener('click', ()=> showToast('Recap is empty for today'));
+document.getElementById('settingsBtn').addEventListener('click', ()=> showModal('My Home Settings','Settings are not available in this prototype.'));
+
+document.getElementById('addAppsBtn').addEventListener('click', ()=> showModal('Add Apps','App catalog is not available in this prototype.'));
+document.getElementById('addTilesBtn').addEventListener('click', ()=> showModal('Add Tiles','Tile catalog is not available in this prototype.'));
+
+/* Insights tile click */
+document.querySelectorAll('.insight-tile').forEach(t=>{
+  t.addEventListener('click', ()=> openApp(t.dataset.app, t.dataset.app === 'post-gje' ? 'Post General Journal Entries' : 'My Inbox'));
+});
+
+/* Sub-nav tabs */
+document.querySelectorAll('#subnav .tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('#subnav .tab').forEach(x=> x.classList.remove('active'));
+    t.classList.add('active');
+    if(t.dataset.tab !== 'My Home'){
+      showToast(`Section "${t.dataset.tab}" not implemented`);
+    }
+  });
+});
+
+/* =====================================================================================
+   ROUTING — open app / back
+   ===================================================================================== */
+function openApp(id, title){
+  if(id === 'post-gje'){
+    setView('post');
+    document.getElementById('appTitle').textContent = 'Post General Journal Entries';
+    document.getElementById('appTitleBtn').querySelector('svg').style.display='inline-block';
+    document.getElementById('backBtn').style.display='inline-flex';
+    document.getElementById('menuBtn').style.display='inline-flex';
+    return;
+  }
+  if(id === 'my-inbox' || id === 'inbox'){
+    showModal('My Inbox', 'You have 0 items in your inbox.');
+    return;
+  }
+  showToast(`"${title}" not implemented in this prototype.`);
+}
+
+function setView(view){
+  STATE.view = view;
+  ['home','post','manage'].forEach(v=>{
+    document.getElementById('screen-'+v).classList.toggle('active', v === view);
+  });
+  // Reset header version slot
+  document.getElementById('versionToggleSlot').innerHTML = '';
+  if(view === 'manage'){
+    document.getElementById('versionToggleSlot').innerHTML = `
+      <span class="text-[13px] text-white/85">New Version</span>
+      <span class="toggle" id="versionToggle" role="switch" aria-checked="false" tabindex="0"></span>
+      <span class="w-6 h-6 rounded-full bg-[#E76500] inline-flex items-center justify-center text-white text-[12px] font-bold" aria-label="Warning">!</span>`;
+    document.getElementById('versionToggle').addEventListener('click', e=>{
+      e.currentTarget.classList.toggle('on');
+      const on = e.currentTarget.classList.contains('on');
+      e.currentTarget.setAttribute('aria-checked', String(on));
+      showToast(on ? 'Showing new version' : 'Showing entry view');
+    });
+  }
+  if(view === 'home'){
+    document.getElementById('appTitle').textContent = 'Home';
+    document.getElementById('backBtn').style.display='none';
+  }
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+/* Back button */
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  if(STATE.view === 'manage'){
+    // From a posted entry, Back returns to Home; from a simulate preview, Back returns to the editable form.
+    if(STATE.manageMode === 'simulate'){
+      setView('post');
+      document.getElementById('appTitle').textContent = 'Post General Journal Entries';
+    } else {
+      setView('home');
+    }
+    return;
+  }
+  if(STATE.view === 'post'){ setView('home'); return; }
+});
+
+
+/* =====================================================================================
+   POST GENERAL JOURNAL ENTRIES — Form logic
+   ===================================================================================== */
+
+/* Sync inputs with state */
+function bind(id, key, after){
+  const el = document.getElementById(id);
+  el.value = STATE[key] ?? '';
+  el.addEventListener('input', ()=> { STATE[key] = el.value; if(after) after(); });
+  el.addEventListener('blur', ()=>{
+    if(el.classList.contains('error') && el.value.trim()) el.classList.remove('error');
+  });
+}
+
+bind('f-postDate','postDate', updatePeriod);
+bind('f-jeDate','jeDate', ()=> { /* no-op */ });
+bind('f-jeType','jeType');
+bind('f-coCode','coCode');
+bind('f-currency','currency');
+bind('f-ledger','ledger');
+bind('f-ref','reference');
+bind('f-icompany','intercompany');
+bind('f-hdrText','hdrText');
+bind('f-exch','exch');
+bind('f-translation','translation');
+
+function updatePeriod(){
+  const v = STATE.postDate;
+  const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m){
+    document.getElementById('f-period').value = String(parseInt(m[1],10)); // month number, simplified
+  } else {
+    document.getElementById('f-period').value = '';
+  }
+}
+updatePeriod();
+
+/* Header tab switching */
+document.querySelectorAll('[data-htab]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-htab]').forEach(x=> x.classList.remove('active'));
+    b.classList.add('active');
+    STATE.activeHeaderTab = b.dataset.htab;
+    ['header','attachments','notes','balances'].forEach(t=>{
+      document.getElementById('hdr-'+t).classList.toggle('hidden', t !== b.dataset.htab);
+    });
+  });
+});
+
+/* Per-line "More Details" accordion (inline below the row) */
+function detailsHTML(idx, line){
+  const d = line.details || {};
+  const f = (key, label, val='', vh=true, placeholder='') => `
+    <div>
+      <div class="field-label">${label}</div>
+      <div class="field-wrap ${vh ? 'with-vh' : ''}">
+        <input class="field-input ld-input" data-idx="${idx}" data-key="${key}" value="${val}" placeholder="${placeholder}"/>
+        ${vh ? `<button class="vh-btn" aria-label="Pick"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>` : ''}
+      </div>
+    </div>`;
+  const fDate = (key, label, val='', placeholder='') => `
+    <div>
+      <div class="field-label">${label}</div>
+      <div class="field-wrap with-vh">
+        <input class="field-input ld-input" data-idx="${idx}" data-key="${key}" value="${val}" placeholder="${placeholder}"/>
+        <button class="vh-btn" aria-label="Pick date"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></button>
+      </div>
+    </div>`;
+  return `
+    <div class="line-details bg-white border-t border-[#ECEEF0] px-6 py-5" data-idx="${idx}">
+      <div class="text-right mb-2">
+        <button class="btn btn-link assign-profit" data-idx="${idx}">Assign Profitability Segment</button>
+      </div>
+      <div class="font-semibold text-[14px] mb-3">More Details</div>
+      <div class="grid grid-cols-6 gap-x-6 gap-y-3">
+        ${f('itemText','Item Text:', d.itemText || '', false)}
+        ${f('assign','Assignment:', d.assign || '', false)}
+        ${f('qty','Quantity:', d.qty || '0.000', true)}
+        ${f('pdoc','Purchasing Document:', d.pdoc || '')}
+        ${f('pditem','Purchasing Doc. Item:', d.pditem || '')}
+        ${fDate('valDate','Value Date:', d.valDate || '05/14/2026')}
+        ${f('reason','Reason Code:', d.reason || '')}
+        ${f('supply','Supplying Ctry/Reg.:', d.supply || '')}
+        ${f('cbpr','Central Bk Payt Rsn:', d.cbpr || '')}
+      </div>
+
+      <div class="font-semibold text-[14px] mt-6 mb-3">Account Assignment</div>
+      <div class="grid grid-cols-6 gap-x-6 gap-y-3">
+        ${f('mainAsset','Main Asset No.:', d.mainAsset || '')}
+        ${f('subnumber','Subnumber:', d.subnumber || '')}
+        ${f('cc','Cost Center:', d.cc || '')}
+        ${f('pc','Profit Center:', d.pc || '')}
+        ${f('partnerPc','Partner Profit Center:', d.partnerPc || '')}
+        ${f('seg','Segment:', d.seg || '')}
+        ${f('partnerSeg','Partner Segment:', d.partnerSeg || '')}
+        ${f('funcArea','Functional Area:', d.funcArea || '')}
+        ${f('finTxType','Financial Transaction Type:', d.finTxType || '')}
+      </div>
+
+      <div class="font-semibold text-[14px] mt-6 mb-3">Real Estate</div>
+      <div class="grid grid-cols-6 gap-x-6 gap-y-3">
+        ${f('bizEntity','Business Entity:', d.bizEntity || '')}
+        ${f('land','Land:', d.land || '')}
+        ${f('building','Building:', d.building || '')}
+        ${f('rental','Rental Object:', d.rental || '')}
+        ${f('srvKey','Srv. Charge Key:', d.srvKey || '')}
+        ${f('settle','Settlement Unit:', d.settle || '')}
+        ${fDate('refDate','Reference Date:', d.refDate || '', 'e.g. 12/31/2026')}
+        ${f('contract','Contract:', d.contract || '')}
+        ${f('corrItems','Corr.Items:', d.corrItems || '')}
+      </div>
+    </div>
+  `;
+}
+
+/* Line items render */
+function renderLines(){
+  const root = document.getElementById('lineItems');
+  root.innerHTML = '';
+  STATE.lines.forEach((line, idx)=>{
+    const isValid = line.gl && (parseFloat(line.debit)>0 || parseFloat(line.credit)>0);
+    const wrap = document.createElement('div');
+    wrap.className = 'line-wrap';
+    wrap.innerHTML = `
+      <div class="line-row">
+        <button class="icon-square-btn expand" data-idx="${idx}" aria-label="${line.expanded ? 'Collapse row' : 'Expand row'}" aria-expanded="${line.expanded ? 'true' : 'false'}">
+          <svg class="ic chev ${line.expanded ? 'rot' : ''}" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="text-[13px] text-[#1D2D3E] w-4">${idx+1}</span>
+        <span class="text-[13px] text-[#1D2D3E]">Company Code</span>
+        <div class="field-wrap with-vh" style="width:110px">
+          <input class="field-input li-co" data-idx="${idx}" value="${line.coCode}" />
+          <button class="vh-btn" aria-label="Pick"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+        </div>
+        <span class="text-[13px] text-[#1D2D3E]">G/L Account<span class="req-star">*</span></span>
+        <div class="field-wrap with-vh gl-wrap" style="width:200px; position:relative;">
+          <input class="field-input li-gl" data-idx="${idx}" value="${line.gl}" placeholder="" autocomplete="off" />
+          <button class="vh-btn vh-gl" aria-label="Pick G/L"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h12v12H4zM8 8h12v12H8z"/></svg></button>
+        </div>
+        <span class="text-[13px] text-[#1D2D3E]">Debit<span class="req-star">*</span></span>
+        <div class="field-wrap" style="width:120px"><input class="field-input li-debit text-right" data-idx="${idx}" value="${line.debit}"/></div>
+        <span class="text-[13px] text-[#556B82]">USD</span>
+        <span class="text-[13px] text-[#1D2D3E] ml-2">Credit<span class="req-star">*</span></span>
+        <div class="field-wrap" style="width:120px"><input class="field-input li-credit text-right" data-idx="${idx}" value="${line.credit}"/></div>
+        <span class="text-[13px] text-[#556B82]">USD</span>
+        <div class="ml-auto flex items-center gap-2">
+          ${idx === STATE.lines.length - 1 ? `<button class="icon-square-btn add-row" data-idx="${idx}" title="Add line"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></button>` : ''}
+          <button class="icon-square-btn danger del-row" data-idx="${idx}" title="Delete line"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></button>
+          <span class="icon-square-btn" title="Status">${
+            isValid
+              ? `<svg viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="12" r="9" fill="#0A8A2E"/><path d="M7 12l3 3 7-7" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+              : `<svg viewBox="0 0 24 24" style="width:18px;height:18px" stroke="#0070F2" fill="none" stroke-width="1.6"><path d="M12 3l9 9-9 9-9-9z"/></svg>`
+          }</span>
+        </div>
+      </div>
+      ${line.expanded ? detailsHTML(idx, line) : ''}
+    `;
+    root.appendChild(wrap);
+  });
+  // Bind events
+  root.querySelectorAll('.li-co').forEach(el=> el.addEventListener('input', e=>{
+    STATE.lines[+e.target.dataset.idx].coCode = e.target.value; recalc();
+  }));
+  root.querySelectorAll('.li-gl').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const idx = +e.target.dataset.idx;
+      STATE.lines[idx].gl = e.target.value; recalc();
+      // Show dropdown as user types
+      openGLPopover(el, idx, true);
+    });
+    el.addEventListener('focus', e=>{
+      const idx = +e.target.dataset.idx;
+      openGLPopover(el, idx, false);
+    });
+    el.addEventListener('blur', e=>{
+      setTimeout(()=> closeGLPopover(), 200); // allow click on popover
+    });
+  });
+  root.querySelectorAll('.vh-gl').forEach(el=>{
+    el.addEventListener('mousedown', e=>{
+      e.preventDefault();
+      const wrap = el.closest('.gl-wrap');
+      const input = wrap.querySelector('.li-gl');
+      const idx = +input.dataset.idx;
+      openGLPopover(input, idx, false);
+      input.focus();
+    });
+  });
+  root.querySelectorAll('.li-debit, .li-credit').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const idx = +e.target.dataset.idx;
+      const isDebit = e.target.classList.contains('li-debit');
+      STATE.lines[idx][isDebit ? 'debit' : 'credit'] = e.target.value;
+      recalc();
+    });
+    el.addEventListener('blur', e=>{
+      const v = parseFloat(e.target.value);
+      e.target.value = isNaN(v) ? '0.00' : v.toFixed(2);
+      const idx = +e.target.dataset.idx;
+      const isDebit = e.target.classList.contains('li-debit');
+      STATE.lines[idx][isDebit ? 'debit' : 'credit'] = e.target.value;
+      recalc();
+    });
+  });
+  root.querySelectorAll('.add-row').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      STATE.lines.push({ coCode:'1710 ...', gl:'', debit:'0.00', credit:'0.00', expanded:false, details:{} });
+      renderLines(); recalc();
+      document.getElementById('liCount').textContent = STATE.lines.length;
+    });
+  });
+  root.querySelectorAll('.del-row').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = +el.dataset.idx;
+      if(STATE.lines.length <= 1){ showToast("At least one line item is required"); return; }
+      STATE.lines.splice(idx,1);
+      renderLines(); recalc();
+      document.getElementById('liCount').textContent = STATE.lines.length;
+    });
+  });
+  root.querySelectorAll('.expand').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = +el.dataset.idx;
+      STATE.lines[idx].expanded = !STATE.lines[idx].expanded;
+      // Seed sensible defaults the first time a row with a G/L is expanded
+      if(STATE.lines[idx].expanded && STATE.lines[idx].gl){
+        const d = STATE.lines[idx].details || {};
+        if(!d.cc)  d.cc  = '17101501 (R&D (US))';
+        if(!d.pc)  d.pc  = 'YB600 (Shared Services)';
+        if(!d.seg) d.seg = '1000_C (Segment C)';
+        STATE.lines[idx].details = d;
+      }
+      renderLines();
+    });
+  });
+  // Per-line details inputs
+  root.querySelectorAll('.ld-input').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const idx = +e.target.dataset.idx;
+      const key = e.target.dataset.key;
+      STATE.lines[idx].details = STATE.lines[idx].details || {};
+      STATE.lines[idx].details[key] = e.target.value;
+    });
+  });
+  // Assign profitability segment buttons
+  root.querySelectorAll('.assign-profit').forEach(el=>{
+    el.addEventListener('click', ()=> showToast('Profitability segment assignment not implemented'));
+  });
+}
+
+/* G/L Account popover */
+let glPop = null;
+function openGLPopover(input, idx, isTyping){
+  closeGLPopover();
+  const r = input.getBoundingClientRect();
+  const wrap = input.closest('.gl-wrap');
+  glPop = document.createElement('div');
+  glPop.className = 'popover';
+  glPop.tabIndex = -1;
+  glPop.style.left = '0';
+  glPop.style.top = (input.offsetHeight + 2) + 'px';
+  glPop.innerHTML = `
+    <div class="ph"><div>G/L Acct External ID</div><div>Company Code</div><div>Chart of Accounts</div><div>G/L Account Name</div><div>G/L Account Long Name</div><div>Alternative G/L Account</div></div>
+    <div class="grp">Recently Used</div>
+    ${GL_ACCOUNTS.map((g,i)=>`
+      <div class="pr ${i===0?'kbd':''}" data-id="${g.id}">
+        <div>${g.id}</div><div>${g.co}</div><div>${g.cha}</div><div>${g.name}</div><div>${g.long}</div><div></div>
+      </div>`).join('')}
+  `;
+  wrap.appendChild(glPop);
+  glPop.querySelectorAll('.pr').forEach(pr=>{
+    pr.addEventListener('mousedown', e=> e.preventDefault());
+    pr.addEventListener('click', ()=>{
+      const id = pr.dataset.id;
+      const g = GL_ACCOUNTS.find(a=>a.id===id);
+      STATE.lines[idx].gl = `${g.id} ...`;
+      // If user expanded the row, fill in details using G/L defaults
+      STATE.lines[idx].details = {
+        glLong: g.long,
+        glName: g.name
+      };
+      renderLines();
+      recalc();
+      closeGLPopover();
+      showToast(`G/L Account ${g.id} selected`);
+    });
+  });
+}
+function closeGLPopover(){
+  if(glPop && glPop.parentNode){ glPop.parentNode.removeChild(glPop); }
+  glPop = null;
+}
+document.addEventListener('click', e=>{
+  if(glPop && !e.target.closest('.gl-wrap')) closeGLPopover();
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeGLPopover(); closeModal(); }});
+
+/* Recalculate totals + balance */
+function recalc(){
+  let d=0, c=0;
+  STATE.lines.forEach(l=>{
+    d += parseFloat(l.debit||0) || 0;
+    c += parseFloat(l.credit||0) || 0;
+  });
+  document.getElementById('totDebit').textContent = d.toFixed(2);
+  document.getElementById('totCredit').textContent = c.toFixed(2);
+  const diff = d - c;
+  const tb = document.getElementById('totalBalance');
+  tb.textContent = diff.toFixed(2);
+  tb.classList.toggle('text-[#0A8A2E]', diff === 0);
+  tb.classList.toggle('text-[#BB0000]', diff !== 0);
+
+  // Update post button: enabled when at least one line valid AND balanced AND total > 0
+  const allValid = STATE.lines.every(l=> l.gl && (parseFloat(l.debit)>0 || parseFloat(l.credit)>0));
+  const postEnabled = allValid && diff === 0 && (d > 0 || c > 0);
+  document.getElementById('postBtn').disabled = !postEnabled;
+
+}
+
+/* Recalc on init */
+renderLines(); recalc();
+
+/* Buttons */
+document.getElementById('addLine').addEventListener('click', ()=>{
+  STATE.lines.push({ coCode:'1710 ...', gl:'', debit:'0.00', credit:'0.00', expanded:false, details:{} });
+  document.getElementById('liCount').textContent = STATE.lines.length;
+  renderLines(); recalc();
+});
+document.getElementById('expandAll').addEventListener('click', ()=>{
+  STATE.lines.forEach(l=>{
+    l.expanded = true;
+    if(l.gl){
+      l.details = l.details || {};
+      if(!l.details.cc)  l.details.cc  = '17101501 (R&D (US))';
+      if(!l.details.pc)  l.details.pc  = 'YB600 (Shared Services)';
+      if(!l.details.seg) l.details.seg = '1000_C (Segment C)';
+    }
+  });
+  renderLines();
+});
+document.getElementById('collapseAll').addEventListener('click', ()=>{
+  STATE.lines.forEach(l=> l.expanded = false);
+  renderLines();
+});
+
+document.getElementById('showMore').addEventListener('click', e=>{
+  const btn = e.currentTarget;
+  if(btn.textContent.trim() === 'Show More'){
+    btn.textContent = 'Show Less';
+    showToast('Additional header fields are not implemented in this prototype.');
+  } else { btn.textContent = 'Show More'; }
+});
+
+document.getElementById('calcTax').addEventListener('click', e=>{
+  STATE.calcTax = !STATE.calcTax;
+  e.currentTarget.style.background = STATE.calcTax ? '#0070F2' : '';
+  e.currentTarget.style.borderColor = STATE.calcTax ? '#0070F2' : '';
+  e.currentTarget.innerHTML = STATE.calcTax ? '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" style="width:14px;height:14px;position:absolute;left:0;top:0"><path d="M5 12l4 4 10-10"/></svg>' : '';
+});
+
+document.getElementById('selTpl').addEventListener('click', ()=> showModal('Select Templates', 'No templates available.'));
+document.getElementById('upload').addEventListener('click', ()=> showModal('Upload New Entry', 'Upload from spreadsheet not implemented.'));
+document.getElementById('hold').addEventListener('click', ()=>{
+  showToast('Journal entry held');
+});
+/* Render the Manage Journal Entries screen in either:
+   - 'simulate' : preview before posting (temp ID, single Header tab, Post + Select Currency)
+   - 'posted'   : the committed document (real ID, 4 tabs, T-Account View, Edit + actions)
+   Called whenever we navigate to the manage view, before setView('manage'). */
+function setManageMode(mode){
+  STATE.manageMode = mode;
+  const isSim = (mode === 'simulate');
+
+  // SAP shell title
+  document.getElementById('appTitle').textContent = 'Manage Journal Entries';
+
+  // Page heading: "Journal Entry (<id>) - Entry View"
+  const docId = isSim ? STATE.simulateId : STATE.postedDocId;
+  document.getElementById('mvTitle').firstChild.textContent =
+    `Journal Entry (${docId}) - Entry View`;
+
+  // Tabs — simulate has only Header; posted shows the four-tab strip.
+  const tabs = document.getElementById('mvTabs');
+  tabs.innerHTML = isSim
+    ? `<div class="ftab active">Header</div>`
+    : `<div class="ftab active">Header</div>
+       <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Attachments</span></div>
+       <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Notes</span></div>
+       <div class="ftab flex flex-col items-start"><span class="text-[#556B82] text-[12px]">0</span><span>Related Documents</span></div>`;
+
+  // Header values derived from the live form state
+  document.getElementById('mv-jed').textContent  = STATE.jeDate   || STATE.postDate || '12/15/2025';
+  document.getElementById('mv-pd').textContent   = STATE.postDate || '12/15/2025';
+
+  // Company Code — bare "1710" in simulate, enriched in posted
+  document.getElementById('mv-cc').textContent = isSim
+    ? (STATE.coCode || '1710').replace(/\s*\(.*\)\s*$/, '')   // strip "(US Company Code Palo Alto)"
+    : '1710 (US Company Code)';
+
+  // Created By / Entered At — empty in simulate, filled in posted
+  document.getElementById('mv-by').textContent   = isSim ? '—' : 'Requestor (CB9980000050)';
+  document.getElementById('mv-when').textContent = isSim ? '—' : '05/14/2026, 06:32';
+
+  // T-Account View link only visible after posting
+  document.getElementById('tAcctView').style.display = isSim ? 'none' : '';
+
+  // Line-item amounts reflect what was entered on the form
+  const l1 = STATE.lines[0] || {debit:'100.00', credit:'0.00'};
+  const l2 = STATE.lines[1] || {debit:'0.00',  credit:'100.00'};
+  document.getElementById('mv-r1-d').textContent = parseFloat(l1.debit  || 0).toFixed(2);
+  document.getElementById('mv-r2-c').textContent = parseFloat(l2.credit || 0).toFixed(2);
+
+  // Action bar — Post vs Edit
+  const bar = document.getElementById('manageActionBar');
+  if(isSim){
+    bar.innerHTML = `
+      <button class="btn btn-primary" id="managePost">Post</button>
+      <button class="btn btn-link" id="manageSelCur">Select Currency</button>
+      <button class="icon-square-btn" id="manageShare" title="Share"><svg class="ic" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7M16 6l-4-4-4 4M12 2v14"/></svg></button>
+    `;
+    document.getElementById('managePost').addEventListener('click', ()=>{
+      // Commit: switch to posted mode and re-render in place.
+      STATE.posted = true;
+      setManageMode('posted');
+      showToast(`Journal entry ${STATE.postedDocId} posted successfully`);
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+    document.getElementById('manageSelCur').addEventListener('click', ()=> showToast('Select Currency not implemented'));
+    document.getElementById('manageShare').addEventListener('click', ()=> showToast('Share is not implemented'));
+  } else {
+    bar.innerHTML = `
+      <button class="btn btn-primary" id="manageEdit">Edit</button>
+      <button class="btn btn-link">Create Correspondence</button>
+      <button class="btn btn-link">Reverse</button>
+      <button class="btn btn-link">New</button>
+      <button class="btn btn-link">Display Changes</button>
+      <button class="btn btn-link">Select Currency</button>
+      <button class="icon-square-btn" title="Share"><svg class="ic" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7M16 6l-4-4-4 4M12 2v14"/></svg></button>
+    `;
+    document.getElementById('manageEdit').addEventListener('click', ()=>{
+      setView('post');
+      document.getElementById('appTitle').textContent = 'Post General Journal Entries';
+    });
+  }
+}
+
+/* Simulate button — validate, then NAVIGATE to the preview screen */
+document.getElementById('simulate').addEventListener('click', ()=>{
+  // Required-field validation
+  let bad = false;
+  ['f-jeDate','f-postDate','f-jeType','f-coCode','f-currency'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(!el.value.trim()){ el.classList.add('error'); bad = true; }
+    else el.classList.remove('error');
+  });
+  if(bad){ showToast('Please fill in required header fields'); return; }
+
+  // Balance validation
+  const d = parseFloat(document.getElementById('totDebit').textContent);
+  const c = parseFloat(document.getElementById('totCredit').textContent);
+  if(d === 0 && c === 0){ showToast('Add line item amounts before simulating'); return; }
+  if(d !== c){ showToast(`Out of balance by ${(d - c).toFixed(2)} USD`); return; }
+
+  // Navigate to the preview screen
+  setManageMode('simulate');
+  setView('manage');
+  window.scrollTo({top: 0, behavior: 'instant'});
+});
+
+document.getElementById('postBtn').addEventListener('click', ()=>{
+  // Validate required header fields
+  let bad=false;
+  ['f-jeDate','f-postDate','f-jeType','f-coCode','f-currency'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(!el.value.trim()){ el.classList.add('error'); bad=true; } else el.classList.remove('error');
+  });
+  if(bad){ showToast('Please fill in required fields'); return; }
+
+  // Direct-post path: skip the simulate preview and go straight to the posted entry.
+  STATE.posted = true;
+  setManageMode('posted');
+  setView('manage');
+  showToast(`Journal entry ${STATE.postedDocId} posted successfully`);
+});
+
+document.getElementById('exitBtn').addEventListener('click', ()=>{
+  showModal('Discard changes?', 'Any unsaved data will be lost.', ()=>{
+    setView('home');
+  });
+});
+
+// (manageEdit handler is bound dynamically inside setManageMode('posted'))
+
+document.getElementById('fabTasks').addEventListener('click', ()=> showModal('Tasks', 'You have 10 onboarding tasks.'));
+
+/* App title chevron -> back home (mimic) */
+document.getElementById('appTitleBtn').addEventListener('click', ()=>{
+  if(STATE.view !== 'home') setView('home');
+});
+
+document.getElementById('menuBtn').addEventListener('click', ()=> showModal('App Finder', 'App finder is not implemented.'));
+
+/* =====================================================================================
+   Toast / Modal helpers
+   ===================================================================================== */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(STATE.toastTimer);
+  STATE.toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+let modalOnOk = null;
+function showModal(title, body, onOk){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').textContent = body;
+  document.getElementById('modalBackdrop').classList.add('show');
+  modalOnOk = onOk || null;
+  document.getElementById('modalOk').focus();
+}
+function closeModal(){
+  document.getElementById('modalBackdrop').classList.remove('show');
+}
+document.getElementById('modalOk').addEventListener('click', ()=>{
+  if(modalOnOk) modalOnOk();
+  closeModal();
+});
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalBackdrop').addEventListener('click', e=>{
+  if(e.target === document.getElementById('modalBackdrop')) closeModal();
+});
+
+/* Initial render */
+renderApps();
+</script>
+</body>
+</html>
